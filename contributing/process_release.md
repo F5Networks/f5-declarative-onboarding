@@ -59,7 +59,7 @@
   * Tag the appropriate branch with the updated `<version>-<build>` (e.g. v1.35.0-4)
   * Upload the build to Artifactory
   * Send an email to the team with build details
-* Point the `gitBranch` variable in the AS3 schedule in the atg-build repository back to `develop`
+* Point the `gitBranch` variable in the DO schedule in the atg-build repository back to `develop`
 * Prepare the `develop` branch for the next development cycle
   * `git checkout develop`
   * `git pull`

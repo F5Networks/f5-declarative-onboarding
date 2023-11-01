@@ -1,6 +1,15 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.42.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.41.0
 ### Added
 - AUTOTOOL-4020: ([GitHub 86](https://github.com/F5Networks/f5-declarative-onboarding/issues/86)): Update trust certificates when updating device certificate

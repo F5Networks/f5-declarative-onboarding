@@ -1,0 +1,299 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/main/src/schema/latest/security.schema.json",
+    "title": "F5 BIG-IP Declarative Onboarding security declaration",
+    "description": "Security properties for onboarding a BIG-IP.",
+    "allOf": [
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SecurityAnalytics" } }
+            },
+            "then": {
+                "$ref": "#/definitions/securityAnalytics"
+            }
+        },
+        {
+            "if": {
+                "required": ["class"],
+                "properties": { "class": { "const": "SecurityWaf" } }
+            },
+            "then": {
+                "$ref": "#/definitions/securityWaf"
+            }
+        }
+    ],
+    "definitions": {
+        "securityAnalytics": {
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains SecurityAnalytics configuration.",
+                    "type": "string",
+                    "const": "SecurityAnalytics"
+                },
+                "aclRules": {
+                    "description": "Firewall (ACL) security statistics collection options.",
+                    "type": "object",
+                    "properties": {
+                        "collectClientIpEnabled": {
+                            "description": " Specifies whether source/client IP address should be collected for ACL rule matching.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectClientPortEnabled": {
+                            "description": "Specifies whether source/client port should be collected for ACL rule matching.",
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "collectDestinationIpEnabled": {
+                            "description": "Specifies whether the destination IP address should be collected for ACL rule matching.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectDestinationPortEnabled": {
+                            "description": "Specifies whether the destination port should be collected for ACL rule matching.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectServerSideStatsEnabled": {
+                            "description": "Specifies whether server side statistics (source address translation information, self IP address and pool member address) should be collected for ACL rule matching.",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                },
+                "collectAllDosStatsEnabled": {
+                    "description": "Specifies whether to enable or disable the collection of all DoS statistics.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "collectedStatsExternalLoggingEnabled": {
+                    "description": "Specifies whether to enable or disable external logging of collected statistics.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "collectedStatsInternalLoggingEnabled": {
+                    "description": "Specifies whether to enable or disable internal logging of collected statistics.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "dns": {
+                    "description": "DNS security statistics collection options.",
+                    "type": "object",
+                    "properties": {
+                        "collectClientIpEnabled": {
+                            "description": "Specifies whether source/client IP address should be collected for DNS security.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectDestinationIpEnabled": {
+                            "description": "Specifies whether the destination IP address should be collected for DNS security.",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                },
+                "collectDnsStatsEnabled": {
+                    "description": "Specifies whether to enable or disable DNS statistics collection.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "dosL2L4": {
+                    "description": "Network DoS statistics collection options.",
+                    "type": "object",
+                    "properties": {
+                        "collectClientIpEnabled": {
+                            "description": "Specifies whether source/client IP address should be collected for network layer's DoS security.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectDestinationGeoEnabled": {
+                            "description": "Specifies whether the destination geo should be collected for network layer's DoS security.",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                },
+                "collectDosL3StatsEnabled": {
+                    "description": "Specifies whether to enable or disable the collection of DoS L3 statistics.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "collectFirewallAclStatsEnabled": {
+                    "description": "Specifies whther to enable or disable the collection of firewall ACL statistics.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "collectFirewallDropsStatsEnabled": {
+                    "description": "Specifies whether to enable or disable the collection of firewall drops statistics.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "collectIpReputationStatsEnabled": {
+                    "description": "Specifies whether to enable or disable the collection of IP reputation statistics.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "l3L4Errors": {
+                    "description": "Firewall errors statistics collection options.",
+                    "type": "object",
+                    "properties": {
+                        "collectClientIpEnabled": {
+                            "description": "Specifies whether source/client IP address should be collected for firewall errors.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "collectDestinationIpEnabled": {
+                            "description": "Specifies whether the destination IP address should be collected for firewall errors.",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                },
+                "publisher": {
+                    "description": "Specifies the external logging publisher used to send statistical data to one or more destinations.",
+                    "type": "string"
+                },
+                "collectSipStatsEnabled": {
+                    "description": "Specifies whether to enable or disable the collection of SIP statistics.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "smtpConfig": {
+                    "description": "Specifies the default SMTP configuration used for exporting CSV or PDF security analytics reports.",
+                    "type": "string"
+                },
+                "collectStaleRulesEnabled": {
+                    "description": "Specifies whether statistics about all firewall rules should be collected in order to present information regarding rule staleness.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "securityWaf": {
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "description": "Indicates that this property contains SecurityWaf configuration.",
+                    "type": "string",
+                    "const": "SecurityWaf"
+                },
+                "antiVirusProtection": {
+                    "description": "Specifies anti virus protection options.",
+                    "type": "object",
+                    "properties": {
+                        "guaranteeEnforcementEnabled": {
+                            "description": "Specifies whether the system should perform virus checking even if this may slow down the web application.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "hostname": {
+                            "description": "Specifies the server hostname.",
+                            "type": "string",
+                            "format": "hostname"
+                        },
+                        "port": {
+                            "description": "Specifies the server port.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535,
+                            "default": 1344
+                        }
+                    },
+                    "required": ["hostname"],
+                    "additionalProperties": false
+                },
+                "advancedSettings": {
+                    "description": "Specifies WAF advanced settings.",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "description": "Specifies the name of the setting.",
+                                        "type": "string",
+                                        "enum": [
+                                            "ecard_regexp_decimal",
+                                            "ecard_regexp_email",
+                                            "ecard_regexp_phone",
+                                            "icap_uri",
+                                            "virus_header_name",
+                                            "WhiteHatIP1",
+                                            "WhiteHatIP2",
+                                            "WhiteHatIP3",
+                                            "WhiteHatIP4"
+                                        ]
+                                    },
+                                    "value": {
+                                        "description": "Specifies the desired value for the setting.",
+                                        "type": "string",
+                                        "minLength": 1
+                                    }
+                                },
+                                "required": ["name", "value"],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "description": "Specifies the name of the setting.",
+                                        "type": "string",
+                                        "enum": [
+                                            "allow_all_cookies_at_entry_point",
+                                            "bypass_upon_asm_down",
+                                            "bypass_upon_load",
+                                            "cookie_expiration_time_out",
+                                            "cookie_httponly_attr",
+                                            "cookie_max_age",
+                                            "cookie_renewal_time_stamp",
+                                            "LogSignatures",
+                                            "long_request_buffer_size",
+                                            "long_request_mem_percentage",
+                                            "MaxFtpSessions",
+                                            "MaximumCryptographicOperations",
+                                            "MaxSmtpSessions",
+                                            "MaxViolationEntries",
+                                            "max_filtered_html_length",
+                                            "max_json_policy_size",
+                                            "max_login_request_body_buffer_size",
+                                            "max_raw_request_len",
+                                            "max_slow_transactions",
+                                            "policy_history_max_total_size",
+                                            "policy_history_min_retained_versions",
+                                            "ProtocolIndication",
+                                            "PRXRateLimit",
+                                            "reporting_search_timeout",
+                                            "request_buffer_size",
+                                            "ResponseBufferSize",
+                                            "restart_upon_config_update_error",
+                                            "RWLightThreads",
+                                            "RWThreads",
+                                            "sa_login_expiration_timeout",
+                                            "send_content_events",
+                                            "single_page_application",
+                                            "slow_transaction_timeout",
+                                            "total_umu_max_size",
+                                            "total_xml_memory"
+                                        ]
+                                    },
+                                    "value": {
+                                        "description": "Specifies the desired value for the setting.",
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": ["name", "value"],
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}
