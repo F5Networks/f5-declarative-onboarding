@@ -1284,7 +1284,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
-    describe('Test Example Endpoint', () => {
+    describe('Test Example Endpoint', function testExample() {
+        this.timeout(5000);
         const exampleEndpoint = `${constants.DO_API}/example`;
         let thisMachine;
         let authData;
