@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5 Networks, Inc.
+ * Copyright 2023 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1377,7 +1377,8 @@ function handleTeemReport(declaration) {
         }
 
         const record = new TeemRecord('Declarative Onboarding Telemetry Data', '1');
-        return Promise.resolve()
+        // Run report concurrently so declaration handling is not delayed
+        Promise.resolve()
             .then(() => record.calculateAssetId())
             .then(() => record.addRegKey())
             .then(() => record.addPlatformInfo())

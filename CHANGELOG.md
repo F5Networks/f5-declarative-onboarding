@@ -1,6 +1,17 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.41.0
+### Added
+- AUTOTOOL-4020: ([GitHub 86](https://github.com/F5Networks/f5-declarative-onboarding/issues/86)): Update trust certificates when updating device certificate
+
+### Fixed
+- AUTOTOOL-3907: Reports error with Radius server
+
+### Changed
+
+### Removed
+
 ## 1.40.0
 ### Added
 - AUTOTOOL-3931: ([GitHub Issue 656](https://github.com/F5Networks/f5-appsvcs-extension/issues/656)): Add WAF Settings configuration support on DO
@@ -11,6 +22,16 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3942: Fix documentation output from newlines in guiSecurityBannerText
 
 ### Changed
+
+### Removed
+
+## 1.39.1
+### Added
+
+### Fixed
+
+### Changed
+- Promoted to LTS
 
 ### Removed
 

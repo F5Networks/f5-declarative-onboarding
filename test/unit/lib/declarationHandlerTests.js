@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5 Networks, Inc.
+ * Copyright 2023 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const sinon = require('sinon');
+const sandbox = require('sinon').createSandbox();
 
 const TeemDevice = require('@f5devcentral/f5-teem').Device;
 const TeemRecord = require('@f5devcentral/f5-teem').Record;
@@ -86,10 +87,18 @@ describe('declarationHandler', () => {
             handlerCalled('ProvisionHandler');
             return Promise.resolve();
         });
+        sandbox.stub(TeemRecord.prototype, 'calculateAssetId').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addRegKey').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addPlatformInfo').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addProvisionedModules').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addClassCount').resolves();
+        sandbox.stub(TeemRecord.prototype, 'addJsonObject').resolves();
+        sandbox.stub(TeemDevice.prototype, 'reportRecord').resolves();
     });
 
     afterEach(() => {
         sinon.restore();
+        sandbox.restore();
     });
 
     describe('General testing', () => {
@@ -165,10 +174,10 @@ describe('declarationHandler', () => {
                     return Promise.resolve();
                 }
             };
+        });
 
-            afterEach(() => {
-                diffHandlerStub.restore();
-            });
+        afterEach(() => {
+            diffHandlerStub.restore();
         });
 
         it('should parse declarations if not parsed', () => {
@@ -425,7 +434,8 @@ describe('declarationHandler', () => {
                 });
         });
 
-        it('should send TEEM report', () => {
+        it('should send TEEM report', (done) => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new',
                 foo: {
@@ -468,14 +478,8 @@ describe('declarationHandler', () => {
             const isReportCalled = sinon.stub(TeemDevice.prototype, 'report').rejects();
 
             // check the record sent to reportRecord
-            let record;
             sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
-                record = recordIn;
-            });
-
-            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
-            return declarationHandler.process(newDeclaration)
-                .then(() => {
+                try {
                     // Check that each class was called
                     assert.strictEqual(
                         isAddClassCountCalled.calledOnce,
@@ -515,7 +519,7 @@ describe('declarationHandler', () => {
 
                     // Check that the record body object was filled with input
                     assert.deepStrictEqual(
-                        record.recordBody,
+                        recordIn.recordBody,
                         {
                             authenticationType: {
                                 radius: 1,
@@ -535,10 +539,18 @@ describe('declarationHandler', () => {
                             userAgent: 'test userAgent'
                         }
                     );
-                });
+                    done();
+                } catch (err) {
+                    done(err);
+                }
+            });
+
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            declarationHandler.process(newDeclaration);
         });
 
-        it('should count complicated authentication declaration', () => {
+        it('should count complicated authentication declaration', (done) => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new',
                 Common: {
@@ -569,17 +581,11 @@ describe('declarationHandler', () => {
             };
 
             // check the record sent to reportRecord
-            let record;
             sinon.stub(TeemDevice.prototype, 'reportRecord').callsFake((recordIn) => {
-                record = recordIn;
-            });
-
-            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
-            return declarationHandler.process(newDeclaration)
-                .then(() => {
+                try {
                     // Check that the record body object was filled with input
                     assert.deepStrictEqual(
-                        record.recordBody,
+                        recordIn.recordBody,
                         {
                             authenticationType: {
                                 ldap: 1,
@@ -596,10 +602,18 @@ describe('declarationHandler', () => {
                             regkey: 'unknown'
                         }
                     );
-                });
+                    done();
+                } catch (err) {
+                    done(err);
+                }
+            });
+
+            const declarationHandler = new DeclarationHandler(bigIpMock, null, state);
+            declarationHandler.process(newDeclaration);
         });
 
         it('should succeed even if TEEM report fails', () => {
+            sandbox.restore();
             const newDeclaration = {
                 name: 'new'
             };

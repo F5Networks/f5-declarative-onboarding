@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5 Networks, Inc.
+ * Copyright 2023 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,9 +197,16 @@ describe('systemHandler', () => {
                     if (command.endsWith('server.key')) {
                         return Promise.resolve('old key');
                     }
+                    if (command.endsWith('client.crt')) {
+                        return Promise.resolve('old cert');
+                    }
                 }
                 if (command.startsWith('echo')) {
                     if (command.endsWith('server.crt')) {
+                        certWritten = command;
+                        return Promise.resolve();
+                    }
+                    if (command.endsWith('client.crt')) {
                         certWritten = command;
                         return Promise.resolve();
                     }
@@ -211,7 +218,7 @@ describe('systemHandler', () => {
                     return Promise.resolve();
                 }
                 if (command.startsWith('ls')) {
-                    return Promise.resolve('');
+                    return Promise.resolve('No such file or directory');
                 }
                 if (command.startsWith('diff')) {
                     return Promise.resolve(diff);
@@ -232,35 +239,49 @@ describe('systemHandler', () => {
                     DeviceCertificate: {
                         myCertificate: {
                             certificate: 'foo',
-                            privateKey: 'bar'
+                            privateKey: 'bar',
+                            updateTrustCerts: true
                         }
                     }
                 }
             };
-
-            const expectedFilesToRollback = [
-                {
-                    from: '/config/httpd/conf/ssl.crt/server.crt.DO.bak',
-                    to: '/config/httpd/conf/ssl.crt/server.crt'
-                },
-                {
-                    from: '/config/httpd/conf/ssl.key/server.key.DO.bak',
-                    to: '/config/httpd/conf/ssl.key/server.key'
-                }
-            ];
 
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then((status) => {
                     assert.strictEqual(certWritten.startsWith('echo \'foo\''), true);
                     assert.notStrictEqual(keyWritten.indexOf('encrypted key'), -1);
-                    assert.strictEqual(filesCopied.length, 2);
+                    assert.strictEqual(filesCopied.length, 8);
+                    // We copy each file twice because we need .DO.orig and .DO.bak
                     assert.strictEqual(filesCopied[0], '/config/httpd/conf/ssl.crt/server.crt');
                     assert.strictEqual(filesCopied[1], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(filesCopied[2], '/config/big3d/client.crt');
+                    assert.strictEqual(filesCopied[3], '/config/gtm/server.crt');
+                    assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(filesCopied[6], '/config/big3d/client.crt');
+                    assert.strictEqual(filesCopied[7], '/config/gtm/server.crt');
                     assert.strictEqual(status.rebootRequired, true);
                     assert.deepEqual(
                         status.rollbackInfo.systemHandler.deviceCertificate.files,
-                        expectedFilesToRollback
+                        [
+                            {
+                                from: '/config/httpd/conf/ssl.crt/server.crt.DO.bak',
+                                to: '/config/httpd/conf/ssl.crt/server.crt'
+                            },
+                            {
+                                from: '/config/httpd/conf/ssl.key/server.key.DO.bak',
+                                to: '/config/httpd/conf/ssl.key/server.key'
+                            },
+                            {
+                                from: '/config/big3d/client.crt.DO.bak',
+                                to: '/config/big3d/client.crt'
+                            },
+                            {
+                                from: '/config/gtm/server.crt.DO.bak',
+                                to: '/config/gtm/server.crt'
+                            }
+                        ]
                     );
                 });
         });
@@ -282,7 +303,7 @@ describe('systemHandler', () => {
                 .then((status) => {
                     assert.strictEqual(certWritten, '');
                     assert.strictEqual(keyWritten, '');
-                    assert.strictEqual(filesCopied.length, 0);
+                    assert.strictEqual(filesCopied.length, 4);
                     assert.strictEqual(status.rebootRequired, false);
                     assert.strictEqual(
                         status.rollbackInfo.systemHandler.deviceCertificate,
@@ -293,8 +314,7 @@ describe('systemHandler', () => {
 
         it('should restore original cert and key if none are in declaration', () => {
             const declaration = {
-                Common: {
-                }
+                Common: {}
             };
 
             diff = 'they are different';
@@ -302,6 +322,134 @@ describe('systemHandler', () => {
             const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
             return systemHandler.process()
                 .then((status) => {
+                    assert.strictEqual(filesCopied.length, 12);
+                    assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.crt/server.crt.DO.orig');
+                    assert.strictEqual(filesCopied[6], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(filesCopied[7], '/config/httpd/conf/ssl.key/server.key.DO.orig');
+                    assert.strictEqual(filesCopied[8], '/config/big3d/client.crt');
+                    assert.strictEqual(filesCopied[9], '/config/big3d/client.crt.DO.orig');
+                    assert.strictEqual(filesCopied[10], '/config/gtm/server.crt');
+                    assert.strictEqual(filesCopied[11], '/config/gtm/server.crt.DO.orig');
+                    assert.strictEqual(status.rebootRequired, true);
+                });
+        });
+
+        it('should restore certs and key based off rollbackInfo', () => {
+            const declaration = {
+                Common: {}
+            };
+
+            diff = 'they are different';
+            state.rollbackInfo = {
+                systemHandler: {
+                    deviceCertificate: {
+                        files: [
+                            {
+                                from: '/config/httpd/conf/ssl.crt/server.crt.DO.bak',
+                                to: '/config/httpd/conf/ssl.crt/server.crt'
+                            },
+                            {
+                                from: '/config/httpd/conf/ssl.key/server.key.DO.bak',
+                                to: '/config/httpd/conf/ssl.key/server.key'
+                            },
+                            {
+                                from: '/config/big3d/client.crt.DO.bak',
+                                to: '/config/big3d/client.crt'
+                            },
+                            {
+                                from: '/config/gtm/server.crt.DO.bak',
+                                to: '/config/gtm/server.crt'
+                            }
+                        ]
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(filesCopied.length, 8);
+                    assert.strictEqual(filesCopied[0], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[1], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(filesCopied[2], '/config/big3d/client.crt');
+                    assert.strictEqual(filesCopied[3], '/config/gtm/server.crt');
+                    assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt.DO.bak');
+                    assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key.DO.bak');
+                    assert.strictEqual(filesCopied[6], '/config/big3d/client.crt.DO.bak');
+                    assert.strictEqual(filesCopied[7], '/config/gtm/server.crt.DO.bak');
+                    assert.strictEqual(status.rebootRequired, true);
+                });
+        });
+
+        it('should not update trust certs when device cert is already present', () => {
+            const declaration = {
+                Common: {
+                    DeviceCertificate: {
+                        myCertificate: {
+                            certificate: 'foo',
+                            privateKey: 'bar',
+                            updateTrustCerts: true
+                        }
+                    }
+                }
+            };
+
+            doUtilExecuteBashCommandStub.restore();
+            sinon.stub(doUtilMock, 'executeBashCommandIControl').callsFake((bigIp, command) => {
+                if (command.startsWith('cat')) {
+                    if (command.endsWith('/ssl.crt/server.crt')) {
+                        return Promise.resolve('old cert');
+                    }
+                    if (command.endsWith('/gtm/server.crt')) {
+                        return Promise.resolve('old cert\nfoo');
+                    }
+                    if (command.endsWith('server.key')) {
+                        return Promise.resolve('old key');
+                    }
+                    if (command.endsWith('client.crt')) {
+                        return Promise.resolve('old cert\nfoo');
+                    }
+                }
+                if (command.startsWith('echo')) {
+                    if (command.endsWith('server.crt')) {
+                        certWritten = command;
+                        return Promise.resolve();
+                    }
+                    if (command.endsWith('client.crt')) {
+                        certWritten = command;
+                        return Promise.resolve();
+                    }
+                }
+                if (command.startsWith('cp')) {
+                    // command is 'cp from to', so grab the from
+                    const tokens = command.split(' ');
+                    filesCopied.push(tokens[1]);
+                    return Promise.resolve();
+                }
+                if (command.startsWith('ls')) {
+                    return Promise.resolve('No such file or directory');
+                }
+                if (command.startsWith('diff')) {
+                    return Promise.resolve(diff);
+                }
+                if (command.startsWith('/usr/bin/php')) {
+                    keyWritten = command;
+                    return Promise.resolve();
+                }
+                return Promise.reject(new Error('Unhandled bash command in test'));
+            });
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(filesCopied.length, 6);
+                    assert.strictEqual(filesCopied[0], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[1], '/config/httpd/conf/ssl.key/server.key');
+                    assert.strictEqual(filesCopied[2], '/config/big3d/client.crt');
+                    assert.strictEqual(filesCopied[3], '/config/gtm/server.crt');
+                    assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt');
+                    assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
                     assert.strictEqual(status.rebootRequired, true);
                 });
         });
@@ -1003,7 +1151,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(userSent, 'root');
                 assert.strictEqual(newPasswordSent, 'bar');
                 assert.strictEqual(oldPasswordSent, 'foo');
-                assert.strictEqual(bashCmds.length, 8); // Should only be the 8 default commands
+                assert.strictEqual(bashCmds.length, 16); // Should only be the 16 default commands
             });
     });
 
@@ -1099,7 +1247,7 @@ describe('systemHandler', () => {
                     ]
                 );
                 assert.deepEqual(bodiesSent[2].shell, 'tmsh');
-                assert.strictEqual(bashCmds[8],
+                assert.strictEqual(bashCmds[16],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,
                         `echo '${testKey}' > `,
@@ -1108,7 +1256,7 @@ describe('systemHandler', () => {
                         `chmod -R 700 ${sshPaths[0]}; `,
                         `chmod 600 ${sshPaths[0]}/authorized_keys`
                     ].join(''));
-                assert.strictEqual(bashCmds[9],
+                assert.strictEqual(bashCmds[17],
                     [
                         ` mkdir -p ${sshPaths[1]}; `,
                         'echo \'\' > ',

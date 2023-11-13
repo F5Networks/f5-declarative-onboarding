@@ -1,4 +1,4 @@
-image: $DOCKER_URL/node:12-buster
+image: $DOCKER_URL/node:20
 
 stages:
     - update
@@ -37,14 +37,23 @@ include:
 # adds atg-shared-checks stage and jobs
 # adds atg_shared_checks_result job to test stage
   - project: automation-toolchain/atg-shared-templates
-    file: security/base.gitlab-ci.yml
+    file:
+      - compliance/base.gitlab-ci.yml
+      - security/base.gitlab-ci.yml
+
+# Override compliance template job
+check_copyrights:
+  allow_failure: false
+
+# Override compliance template job
+lint:
+  allow_failure: false
 
 update_autotool_deps:
   stage: update
   rules:
     - if: '$UPDATE_DEPS =~ /true/i'
   needs: []
-  image: $DOCKER_URL/node:14
   variables:
     UPDATE_BRANCH_NAME: update_autotool_deps
   script:
@@ -55,15 +64,6 @@ update_autotool_deps:
         node ./scripts/dev/createMR.js
       fi
   tags: [cm-official-docker-executor]
-
-lint:
-    stage: lint
-    needs: []
-    tags:
-        - cm-official-docker-executor
-    script:
-        - npm ci --no-optional
-        - npm run lint
 
 test_node:4:
     stage: test
@@ -131,6 +131,7 @@ test_node:8:
             junit: test_report.xml
 
 test_node:latest:
+    image: $DOCKER_URL/node:16
     stage: test
     needs: []
     tags:
@@ -183,16 +184,6 @@ coverage:
         - public
   coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
 
-audit:
-  image: $DOCKER_URL/node:16
-  needs: []
-  stage: test
-  allow_failure: true
-  tags:
-      - cm-official-docker-executor
-  script:
-      - npm audit
-
 build_rpm:
     image: $DOCKER_URL/node:14
     stage: build
@@ -205,9 +196,6 @@ build_rpm:
         # setup node environment
         - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
-        # ensure latest copyrights, requires dev dependencies
-        - npm ci --no-optional
-        - node node_modules/@f5devcentral/atg-shared-utilities-dev/scripts/dev/write-copyright.js -c -p scripts/dev/copyright.txt
     artifacts:
         name: ${CI_PROJECT_NAME}-${CI_JOB_NAME}-${CI_PIPELINE_IID}
         paths:
@@ -357,6 +345,7 @@ deploy_for_other_project:
           artifacts: true
 
 integration-test:
+    image: $DOCKER_URL/node:16
     tags:
         - do-test-docker-executor
     rules:

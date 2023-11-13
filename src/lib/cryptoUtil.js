@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5 Networks, Inc.
+ * Copyright 2023 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,11 @@ module.exports = {
                 return this.decryptValue(parsed.secret);
             })
             .catch((err) => {
-                logger.warning('Failed to decrypt data with id', id, err);
+                if (err.message.includes('was not found')) {
+                    logger.warning('There was no value to decrypt. This can happen if there is an unexpected restart.', id, err);
+                } else {
+                    logger.warning('Failed to decrypt data with id', id, err);
+                }
                 return Promise.reject(err);
             });
     },

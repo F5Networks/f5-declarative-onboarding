@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5 Networks, Inc.
+ * Copyright 2023 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,20 @@ describe('cryptoUtil', () => {
             ).then(() => {
                 assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'cryptoUtil.js | 123-abc');
                 assert.strictEqual(logWarningSpy.args[0][0], 'Failed to decrypt data with id');
+            });
+        });
+
+        it('should handle list command errors', () => {
+            const error = 'The requested RADIUS Server (/Common/doBigIp) was not found';
+            const logWarningSpy = sinon.spy(Logger.prototype, 'warning');
+            sinon.stub(cloudUtil, 'runTmshCommand').rejects(new Error(error));
+            return assert.isRejected(
+                cryptoUtil.decryptStoredValueById('foo', '123-abc'),
+                'The requested RADIUS Server (/Common/doBigIp) was not found',
+                'should have caught error'
+            ).then(() => {
+                assert.strictEqual(logWarningSpy.thisValues[0].metadata, 'cryptoUtil.js | 123-abc');
+                assert.strictEqual(logWarningSpy.args[0][0], 'There was no value to decrypt. This can happen if there is an unexpected restart.');
             });
         });
     });
