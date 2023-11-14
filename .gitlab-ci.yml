@@ -431,6 +431,7 @@ teardown_for_other_project:
 # Deploy docs to Pages for review
 # Docs are staged on this projects pages site
 pages:
+    image: $DOCKER_URL/node:16
     stage: docs
     allow_failure: true
     environment:
