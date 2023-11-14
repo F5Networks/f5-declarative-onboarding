@@ -12,7 +12,7 @@ Document Revision History
         - Date
 
       * - 1.41
-        - Updated the documentation for Declarative Onboarding v1.41.0.  This release contains the following changes: |br| *  |br| |br| Issues Resolved: |br| * Reports error with Radius server.
+        - Updated the documentation for Declarative Onboarding v1.41.0.  This release contains the following changes: |br| * Added support for updating trust certificates when updating device certificate, `GitHub Issue 86 <https://github.com/F5Networks/f5-appsvcs-extension/issues/86>`_ |br| |br| Issues Resolved: |br| * Reports error with Radius server.
         - 11-14-23
 
       * - 1.40
