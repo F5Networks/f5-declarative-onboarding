@@ -27,6 +27,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3931: ([GitHub Issue 656](https://github.com/F5Networks/f5-appsvcs-extension/issues/656)): Add WAF Settings configuration support on DO
 - AUTOTOOL-3959: Add routeDomain property to RoutingPrefixList
 - AUTOTOOL-1631: ([GitHub Issue 139](https://github.com/F5Networks/f5-declarative-onboarding/issues/139)): Configure username and password prompts
+- AUTOTOOL-4018: ([GitHub Issue 335](https://github.com/F5Networks/f5-declarative-onboarding/issues/335)): Support for adding existing partition as userPartition in RemoteAuthRole
 
 ### Fixed
 - AUTOTOOL-3942: Fix documentation output from newlines in guiSecurityBannerText

@@ -314,13 +314,10 @@
                 },
                 "userPartition": {
                     "description": "Specifies the BIG-IP partition to which you are assigning access to the specified group of remotely-authenticated users. The default value is Common. This option is required.",
-                    "oneOf": [
+                    "anyOf": [
                         {
                             "type": "string",
-                            "enum": [
-                                "all",
-                                "Common"
-                            ]
+                            "minLength": 1
                         },
                         {
                             "$ref": "#/definitions/variableString"
