@@ -1736,12 +1736,14 @@ describe('inspectHandler', () => {
                 {
                     id: 'id0',
                     name: 'policy_history_max_total_size',
-                    value: 1000
+                    value: 1000,
+                    format: 'integer'
                 },
                 {
                     id: 'id1',
                     name: 'max_json_policy_size',
-                    value: 1000
+                    value: 1000,
+                    format: 'integer'
                 }
             ]
         });

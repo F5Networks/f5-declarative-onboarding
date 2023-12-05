@@ -23,6 +23,7 @@ const cloudUtil = require('@f5devcentral/f5-cloud-libs').util;
 const Logger = require('./logger');
 const RADIUS = require('./sharedConstants').RADIUS;
 const PATHS = require('./sharedConstants').PATHS;
+const ADVANCED_SETTINGS_IDS = require('./sharedConstants').WAF_ADVANCED_SETTINGS;
 const doUtil = require('./doUtil');
 
 /**
@@ -1349,16 +1350,23 @@ function patchVxlanTunnels(item, vxlan, translateToNewId) {
 }
 
 function patchSecurityWaf(schemaMerge, wafClass, wafItem) {
+    const wafClassCopy = !wafClass ? {} : JSON.parse(JSON.stringify(wafClass));
+
     if (!schemaMerge) {
-        if (!wafClass.advancedSettings) {
-            wafClass.advancedSettings = {};
+        if (!wafClassCopy.advancedSettings) {
+            wafClassCopy.advancedSettings = {};
         }
-        wafClass.advancedSettings[wafItem.name] = JSON.parse(JSON.stringify(wafItem));
-        delete wafClass.advancedSettings[wafItem.name].name;
-        return wafClass;
+
+        delete wafItem.format; // We have to ask for the 'format' field to get the value to be in the right format
+
+        if (ADVANCED_SETTINGS_IDS[wafItem.name] === 'USER_DEFINED') {
+            wafItem.id = 'USER_DEFINED';
+        }
+        wafClassCopy.advancedSettings[wafItem.name] = JSON.parse(JSON.stringify(wafItem));
+        delete wafClassCopy.advancedSettings[wafItem.name].name;
+        return wafClassCopy;
     }
 
-    const wafClassCopy = !wafClass ? {} : JSON.parse(JSON.stringify(wafClass));
     const patchedItem = Object.assign({}, wafItem);
     return mapSchemaMerge.call(this, wafClassCopy, patchedItem, schemaMerge);
 }

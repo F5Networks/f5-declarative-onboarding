@@ -1493,6 +1493,69 @@ describe('configManager', () => {
             });
         });
 
+        describe('SecurityWaf patches', () => {
+            it('should replace ID with USER_DEFINED for user defined variables', () => {
+                const configItems = [
+                    {
+                        path: '/tm/asm/advanced-settings',
+                        schemaClass: 'SecurityWaf',
+                        properties: [
+                            { id: 'id' },
+                            { id: 'name' },
+                            { id: 'value' },
+                            { id: 'format' }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/asm/advanced-settings'] = [
+                    {
+                        id: 'a8QFQNpyZwmx2mRKELWVjg',
+                        name: 'ignore_cookies_msg_key',
+                        value: '1',
+                        format: 'string'
+                    },
+                    {
+                        id: 'vO3CxwQgcbycM7iTqbnl9w',
+                        name: 'policy_history_max_total_size',
+                        value: 0,
+                        format: 'integer'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock, state);
+
+                return configManager.get({}, doState)
+                    .then(() => {
+                        assert.deepEqual(state.originalConfig,
+                            {
+                                parsed: true,
+                                version: '0.0.0-0',
+                                Common: {
+                                    InternalUse: {
+                                        deviceNames: {
+                                            deviceName: 'device1',
+                                            hostName: 'myhost.bigip.com'
+                                        }
+                                    },
+                                    SecurityWaf: {
+                                        advancedSettings: {
+                                            ignore_cookies_msg_key: {
+                                                id: 'USER_DEFINED',
+                                                value: '1'
+                                            },
+                                            policy_history_max_total_size: {
+                                                id: 'vO3CxwQgcbycM7iTqbnl9w',
+                                                value: 0
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    });
+            });
+        });
+
         it('should set original config if missing', () => {
             const configItems = [
                 {

@@ -3673,6 +3673,10 @@ describe('declarationHandler', () => {
                             {
                                 name: 'max_raw_request_len',
                                 value: '1000'
+                            },
+                            {
+                                name: 'ignore_cookies_msg_key',
+                                value: 1
                             }
                         ]
                     }
@@ -3695,6 +3699,10 @@ describe('declarationHandler', () => {
                                 max_raw_request_len: {
                                     id: 'AG4WUXljvu9lM6AH8dAKXg',
                                     value: '10000'
+                                },
+                                ignore_cookies_msg_key: {
+                                    id: 'USER_DEFINED',
+                                    value: '0'
                                 },
                                 single_page_application: {
                                     id: 'GqhjvcKleDusK8-xl1lC4w',
@@ -3729,6 +3737,10 @@ describe('declarationHandler', () => {
                                 max_raw_request_len: {
                                     id: 'AG4WUXljvu9lM6AH8dAKXg',
                                     value: '1000'
+                                },
+                                ignore_cookies_msg_key: {
+                                    id: 'USER_DEFINED',
+                                    value: '1'
                                 },
                                 single_page_application: {
                                     id: 'GqhjvcKleDusK8-xl1lC4w',

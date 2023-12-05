@@ -1222,6 +1222,11 @@ function applySecurityWafFixes(declaration) {
             ? this.state.originalConfig.Common.SecurityWaf.advancedSettings : {};
 
         securityWaf.advancedSettings.forEach((setting) => {
+            // User defined vars are all strings
+            if (ADVANCED_SETTINGS_IDS[setting.name] === 'USER_DEFINED') {
+                setting.value = setting.value.toString();
+            }
+
             advancedSettings[setting.name] = {
                 value: setting.value,
                 id: ADVANCED_SETTINGS_IDS[setting.name]

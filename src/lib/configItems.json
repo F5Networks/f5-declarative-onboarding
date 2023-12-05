@@ -1295,7 +1295,8 @@
         "properties": [
             { "id": "id" },
             { "id": "name" },
-            { "id": "value" }
+            { "id": "value" },
+            { "id": "format" }
         ],
         "declaration": {
             "customFunctions": [

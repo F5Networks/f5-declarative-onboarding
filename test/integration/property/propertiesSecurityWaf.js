@@ -107,6 +107,14 @@ describe('Security Waf', function testSecurityWafSuite() {
                         {
                             name: 'virus_header_name',
                             value: 'X-Virus-Name,X-Infection-Found,X-Virus-ID'
+                        },
+                        {
+                            name: 'cookie_secure_attr',
+                            value: 1
+                        },
+                        {
+                            name: 'ignore_cookies_msg_key',
+                            value: 1
                         }
                     ],
                     undefined
@@ -122,11 +130,19 @@ describe('Security Waf', function testSecurityWafSuite() {
                             value: 60
                         },
                         {
-                            value: 'X-Virus-Name,X-Infection-Found',
-                            name: 'virus_header_name'
+                            name: 'virus_header_name',
+                            value: 'X-Virus-Name,X-Infection-Found'
                         }
                     ],
                     [
+                        {
+                            name: 'cookie_secure_attr',
+                            value: '1'
+                        },
+                        {
+                            name: 'ignore_cookies_msg_key',
+                            value: '1'
+                        },
                         {
                             name: 'max_raw_request_len',
                             value: 25000
@@ -136,8 +152,8 @@ describe('Security Waf', function testSecurityWafSuite() {
                             value: 100
                         },
                         {
-                            value: 'X-Virus-Name,X-Infection-Found,X-Virus-ID',
-                            name: 'virus_header_name'
+                            name: 'virus_header_name',
+                            value: 'X-Virus-Name,X-Infection-Found,X-Virus-ID'
                         }
                     ],
                     [
@@ -150,15 +166,24 @@ describe('Security Waf', function testSecurityWafSuite() {
                             value: 60
                         },
                         {
-                            value: 'X-Virus-Name,X-Infection-Found',
-                            name: 'virus_header_name'
+                            name: 'virus_header_name',
+                            value: 'X-Virus-Name,X-Infection-Found'
                         }
                     ]
                 ],
                 extractFunction: (o) => {
-                    const updatedSettings = ['max_raw_request_len', 'reporting_search_timeout', 'virus_header_name'];
+                    const updatedSettings = ['max_raw_request_len', 'reporting_search_timeout', 'virus_header_name', 'cookie_secure_attr', 'ignore_cookies_msg_key'];
                     const settings = o.filter((setting) => updatedSettings.indexOf(setting.name) >= 0)
-                        .map((setting) => ({ name: setting.name, value: setting.value }));
+                        .map((setting) => ({ name: setting.name, value: setting.value }))
+                        .sort((a, b) => {
+                            if (a.name < b.name) {
+                                return -1;
+                            }
+                            if (b.name < a.name) {
+                                return 1;
+                            }
+                            return 0;
+                        });
                     return settings;
                 }
             }
