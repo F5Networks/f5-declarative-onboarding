@@ -256,7 +256,7 @@ describe('SecurityHandler', () => {
                 });
         });
 
-        it('should use the CLI tool to remove user defined vars that have been remove from the declaration', () => {
+        it('should use the CLI tool to remove user defined vars that have been removed from the declaration', () => {
             const executeBashCommandIControlSpy = sinon.stub(doUtil, 'executeBashCommandIControl').resolves();
             sinon.stub(doUtil, 'restartService').resolves();
             const declaration = {
@@ -287,7 +287,47 @@ describe('SecurityHandler', () => {
             return securityHandler.process()
                 .then(() => {
                     assert.ok(executeBashCommandIControlSpy.called);
+                    assert.strictEqual(executeBashCommandIControlSpy.args.length, 1);
                     assert.strictEqual(executeBashCommandIControlSpy.args[0][1], '/usr/share/ts/bin/add_del_internal del cookie_secure_attr');
+                });
+        });
+
+        it('should not remove user defined vars that have not been removed from the declaration', () => {
+            const executeBashCommandIControlSpy = sinon.stub(doUtil, 'executeBashCommandIControl').resolves();
+            sinon.stub(doUtil, 'restartService').resolves();
+            const declaration = {
+                Common: {
+                    SecurityWaf: {
+                        advancedSettings: {
+                            cookie_secure_attr: {
+                                value: 2
+                            }
+                        }
+                    }
+                }
+            };
+            const state = {
+                id: 'stateId',
+                originalConfig: {},
+                currentConfig: {
+                    Common: {
+                        SecurityWaf: {
+                            advancedSettings: {
+                                cookie_secure_attr: {
+                                    value: 1
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            const securityHandler = new SecurityHandler(declaration, bigIpMock, undefined, state);
+            return securityHandler.process()
+                .then(() => {
+                    assert.ok(executeBashCommandIControlSpy.called);
+                    assert.strictEqual(executeBashCommandIControlSpy.args.length, 1);
+                    assert.strictEqual(executeBashCommandIControlSpy.args[0][1], '/usr/share/ts/bin/add_del_internal add cookie_secure_attr 2');
                 });
         });
     });

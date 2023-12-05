@@ -106,7 +106,7 @@ function handleSecurityWaf() {
             Object.keys(ADVANCED_SETTINGS_IDS).forEach((setting) => {
                 if (ADVANCED_SETTINGS_IDS[setting] === 'USER_DEFINED') {
                     if (currentAdvancedSettings[setting]
-                        && !(advancedSettings[setting] && originalAdvancedSettings[setting])) {
+                        && !(advancedSettings[setting] || originalAdvancedSettings[setting])) {
                         promises.push(doUtil.executeBashCommandIControl(this.bigIp, `${cliCommand} del ${setting}`));
                     }
                 }
