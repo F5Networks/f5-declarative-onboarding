@@ -2933,6 +2933,16 @@ describe('networkHandler', () => {
                             neighbors: [
                                 {
                                     name: '10.2.2.2',
+                                    addressFamily: [
+                                        {
+                                            name: 'ipv4',
+                                            asOverride: 'enabled'
+                                        },
+                                        {
+                                            name: 'ipv6',
+                                            asOverride: 'disabled'
+                                        }
+                                    ],
                                     ebgpMultihop: 1,
                                     peerGroup: 'Neighbor_IN'
                                 },
@@ -2995,6 +3005,16 @@ describe('networkHandler', () => {
                         neighbor: [
                             {
                                 name: '10.2.2.2',
+                                addressFamily: [
+                                    {
+                                        asOverride: 'enabled',
+                                        name: 'ipv4'
+                                    },
+                                    {
+                                        asOverride: 'disabled',
+                                        name: 'ipv6'
+                                    }
+                                ],
                                 ebgpMultihop: 1,
                                 peerGroup: 'Neighbor_IN'
                             },

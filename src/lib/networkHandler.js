@@ -1189,6 +1189,9 @@ function handleRoutingBGP() {
                         bgp.neighbors.forEach((n) => {
                             const neighborBody = {};
                             neighborBody.name = n.name;
+                            if (n.addressFamily) {
+                                neighborBody.addressFamily = n.addressFamily;
+                            }
                             neighborBody.ebgpMultihop = n.ebgpMultihop;
                             neighborBody.peerGroup = n.peerGroup;
                             neighbor.push(neighborBody);

@@ -64,21 +64,36 @@ class RoutingBgpValidator {
                 }
             }
 
+            (routingBgp.neighbors || []).forEach((neighbor) => {
+                let hasAll = false;
+                let hasIpv4 = false;
+                let hasIpv6 = false;
+
+                (neighbor.addressFamilies || []).forEach((family) => {
+                    hasAll = family.internetProtocol === 'all' ? true : hasAll;
+                    hasIpv4 = family.internetProtocol === 'ipv4' ? true : hasIpv4;
+                    hasIpv6 = family.internetProtocol === 'ipv6' ? true : hasIpv6;
+                });
+
+                if (hasAll && (hasIpv4 || hasIpv6)) {
+                    isValid = false;
+                    errors.push('RoutingBGP neighbors addressFamilies internetProtocol value "all" must not be used with any other internetProtocol value');
+                }
+            });
+
             if (routingBgp.peerGroups) {
                 const peerGroupRouteMaps = [];
                 routingBgp.peerGroups.forEach((peer) => {
-                    if (peer.addressFamilies) {
-                        peer.addressFamilies.forEach((family) => {
-                            if (family.routeMap) {
-                                if (family.routeMap.in && peerGroupRouteMaps.indexOf(family.routeMap.in) === -1) {
-                                    peerGroupRouteMaps.push(family.routeMap.in);
-                                }
-                                if (family.routeMap.out && peerGroupRouteMaps.indexOf(family.routeMap.out) === -1) {
-                                    peerGroupRouteMaps.push(family.routeMap.out);
-                                }
+                    (peer.addressFamilies || []).forEach((family) => {
+                        if (family.routeMap) {
+                            if (family.routeMap.in && peerGroupRouteMaps.indexOf(family.routeMap.in) === -1) {
+                                peerGroupRouteMaps.push(family.routeMap.in);
                             }
-                        });
-                    }
+                            if (family.routeMap.out && peerGroupRouteMaps.indexOf(family.routeMap.out) === -1) {
+                                peerGroupRouteMaps.push(family.routeMap.out);
+                            }
+                        }
+                    });
                 });
                 const routeMapWrapper = doUtil.getClassObjects(data.declaration, 'RouteMap');
                 Object.keys(routeMapWrapper || []).forEach((mapName) => {

@@ -550,6 +550,16 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     neighbors: [
                         {
                             name: '10.1.1.2',
+                            addressFamily: [
+                                {
+                                    name: 'ipv4',
+                                    asOverride: 'enabled'
+                                },
+                                {
+                                    name: 'ipv6',
+                                    asOverride: 'enabled'
+                                }
+                            ],
                             ebgpMultihop: 2,
                             peerGroup: 'Neighbor'
                         }

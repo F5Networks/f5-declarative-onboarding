@@ -18,13 +18,13 @@
                         "const": "Trunk"
                     },
                     "distributionHash": {
-                        "description": "Specifies the basis for the hash that the system uses as the frame distribution algorithm.  Choices are 'dst-mac' (use the destination MAC addresses), 'src-dist-mac' (use the source, destination, and MAC addresses), or 'src-dst-ipport' (use the source and destination IP addresses and ports).",
+                        "description": "Specifies the basis for the hash that the system uses as the frame distribution algorithm. Choices are 'dst-mac' (use the destination MAC addresses), 'src-dist-mac' (use the source, destination, and MAC addresses), or 'src-dst-ipport' (use the source and destination IP addresses and ports).",
                         "type": "string",
                         "enum": ["dst-mac", "src-dst-ipport", "src-dst-mac"],
                         "default": "dst-mac"
                     },
                     "interfaces": {
-                        "description": "Interfaces for the Trunk.  The number of interfaces used is recommended to be a power of 2 (for example 2, 4, or 8).  Interfaces must be untagged.",
+                        "description": "Interfaces for the Trunk. The number of interfaces used is recommended to be a power of 2 (for example 2, 4, or 8). Interfaces must be untagged.",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -37,7 +37,7 @@
                         "default": false
                     },
                     "lacpMode": {
-                        "description": "Specifies the operation mode for LACP if the lacp option is enabled for the trunk.  The values are 'active' (specifies the system periodically transmits LACP packets, regardless of the control value of the peer system) and 'passive' (specifies the system periodically transmits LACP packets, unless the control value of the peer system is active).",
+                        "description": "Specifies the operation mode for LACP if the lacp option is enabled for the trunk. The values are 'active' (specifies the system periodically transmits LACP packets, regardless of the control value of the peer system) and 'passive' (specifies the system periodically transmits LACP packets, unless the control value of the peer system is active).",
                         "type": "string",
                         "enum": ["active", "passive"],
                         "default": "active"
@@ -115,7 +115,7 @@
                         }
                     },
                     "autoLastHop": {
-                        "description": "When enabled, allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route.  Settings are default (inherited global setting), enabled, and disabled.",
+                        "description": "When enabled, allows the system to send return traffic to the MAC address that transmitted the request, even if the routing table points to a different network or interface. As a result, the system can send return traffic to clients even when there is no matching route. Settings are default (inherited global setting), enabled, and disabled.",
                         "type": "string",
                         "enum": ["default", "enabled", "disabled"],
                         "default": "default"
@@ -271,7 +271,7 @@
                         "default": 5767168
                     },
                     "forwardZones": {
-                        "description": "Forward zones on a DNS Resolver.  A given zone name should only use the symbols allowed for a fully qualified domain name (FQDN), namely ASCII letters a through z, digits 0 through 9, hyphen, nad period.  For example site.example.com would be a valid zone name.  A DNS Resolver configured with a forward zone will forward any queries that resulted in a cache-miss and which also match a configured zone name, to the nameserver specified on the zone.",
+                        "description": "Forward zones on a DNS Resolver. A given zone name should only use the symbols allowed for a fully qualified domain name (FQDN), namely ASCII letters a through z, digits 0 through 9, hyphen, nad period. For example site.example.com would be a valid zone name. A DNS Resolver configured with a forward zone will forward any queries that resulted in a cache-miss and which also match a configured zone name, to the nameserver specified on the zone.",
                         "type": "array",
                         "items": {
                             "type": "object",
@@ -290,7 +290,7 @@
                                     ]
                                 },
                                 "nameservers": {
-                                    "description": "Specifies the IP address and service port of a recursive nameserver that answers DNS queries when the response cannot be found in the internal DNS resolver cache.  Enter each address in the format address:port (IPv4) or addrss.port (IPv6).  The port is usually 53.",
+                                    "description": "Specifies the IP address and service port of a recursive nameserver that answers DNS queries when the response cannot be found in the internal DNS resolver cache. Enter each address in the format address:port (IPv4) or addrss.port (IPv6). The port is usually 53.",
                                     "type": "array",
                                     "items": {
                                         "type": "string"
@@ -815,7 +815,7 @@
                                 },
                                 "prefixLengthRange": {
                                     "type": "string",
-                                    "description": "Prefix length range. Examples: Specify '1:32' for greater than or equal to 1 and less than or equal to 32. Specify '1:' for greater than or equal to 1. Specify ':32' for less than or equal to 32. Specify '32' for equal to 32.  Must be 0 or greater than the length on the prefix property.",
+                                    "description": "Prefix length range. Examples: Specify '1:32' for greater than or equal to 1 and less than or equal to 32. Specify '1:' for greater than or equal to 1. Specify ':32' for less than or equal to 32. Specify '32' for equal to 32. Must be 0 or greater than the length on the prefix property.",
                                     "pattern": "^\\d*:?\\d*$",
                                     "default": "0"
                                 }
@@ -870,7 +870,7 @@
                                     "type": "object",
                                     "properties": {
                                         "asPath": {
-                                            "description": "RoutingAsPath to match.  Defines a BGP AS path access list.",
+                                            "description": "RoutingAsPath to match. Defines a BGP AS path access list.",
                                             "type": "string"
                                         },
                                         "ipv4": {
@@ -981,7 +981,7 @@
                         "const": "RoutingBGP"
                     },
                     "localAS": {
-                        "description": "Local Autonomous System.  After the RoutingBGP has been created this value cannot be modified.",
+                        "description": "Local Autonomous System. After the RoutingBGP has been created this value cannot be modified.",
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 4294967295
@@ -994,7 +994,7 @@
                             "required": ["internetProtocol"],
                             "properties": {
                                 "internetProtocol": {
-                                    "description": "Address family.  The value 'all' sets both 'ipv4' and 'ipv6' to the 'all' values.",
+                                    "description": "Address family. The value 'all' sets both 'ipv4' and 'ipv6' to the 'all' values.",
                                     "type": "string",
                                     "enum": ["ipv4", "ipv6", "all"]
                                 },
@@ -1046,15 +1046,11 @@
                                 "maximum": 3600
                             }
                         },
-                        "default": {
-                            "gracefulResetEnabled": false,
-                            "restartTime": 0,
-                            "stalePathTime": 0
-                        },
+                        "default": {},
                         "additionalProperties": false
                     },
                     "holdTime": {
-                        "description": "Globally set or reset the hold time for all of the neighbors.  The holdTime must be either 0 or at least 3 times keepAlive",
+                        "description": "Globally set or reset the hold time for all of the neighbors. The holdTime must be either 0 or at least 3 times keepAlive.",
                         "type": "integer",
                         "default": 90,
                         "minimum": 0,
@@ -1078,6 +1074,27 @@
                                     "description": "Name",
                                     "type": "string",
                                     "format": "f5ip"
+                                },
+                                "addressFamilies": {
+                                    "description": "Address family",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["internetProtocol"],
+                                        "properties": {
+                                            "internetProtocol": {
+                                                "description": "Address family. The value 'all' sets both 'ipv4' and 'ipv6' to the 'all' values.",
+                                                "type": "string",
+                                                "enum": ["ipv4", "ipv6", "all"]
+                                            },
+                                            "asOverrideEnabled": {
+                                                "description": "Enables override AS path.",
+                                                "type": "boolean",
+                                                "default": false
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
                                 },
                                 "ebgpMultihop": {
                                     "description": "Allow external BGP members not on directly connected networks",
@@ -1116,6 +1133,7 @@
                                         "properties": {
                                             "internetProtocol": {
                                                 "description": "Address family",
+                                                "$comment": "this particular addressFamilies does not support the 'all' value in TMSH",
                                                 "type": "string",
                                                 "enum": ["ipv4", "ipv6"]
                                             },
@@ -1203,7 +1221,7 @@
         },
         "firewallAddressList": {
             "title": "Firewall Address List",
-            "description": "Declares an address-list for use by firewall rules. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet",
+            "description": "Declares an address-list for use by firewall rules. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet.",
             "type": "object",
             "properties": {
                 "class": {
@@ -1428,7 +1446,7 @@
         },
         "netAddressList": {
             "title": "Network Address List",
-            "description": "Declares an address-list for use by management IP firewall rules. This property doesn't need an AFM to be provisioned. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet",
+            "description": "Declares an address-list for use by management IP firewall rules. This property doesn't need an AFM to be provisioned. An address list is a list of IP-address prefixes to compare against the source-IP address and/or destination-IP address in an IP packet.",
             "type": "object",
             "properties": {
                 "class": {

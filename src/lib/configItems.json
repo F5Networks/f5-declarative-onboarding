@@ -283,13 +283,19 @@
                 { "id": "addressFamily", "newId": "addressFamilies",
                     "transform": [
                         { "id": "name", "newId": "internetProtocol" },
-                        { "id": "routeMap", "defaultWhenOmitted": "none" },
-                        { "id": "softReconfigurationInbound", "newId": "softReconfigurationInboundEnabled", "truth": "enabled", "falsehood": "disabled" }
+                        { "id": "routeMap", "skipWhenOmitted": true },
+                        { "id": "softReconfigurationInbound", "newId": "softReconfigurationInboundEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
                     ]
                 }
             ],
             "neighborReference": [
                 { "id": "name", "newId": "address" },
+                { "id": "addressFamily", "newId": "addressFamilies",
+                    "transform": [
+                        { "id": "name", "newId": "internetProtocol" },
+                        { "id": "asOverride", "newId": "asOverrideEnabled", "truth": "enabled", "falsehood": "disabled", "skipWhenOmitted": true }
+                    ]
+                },
                 { "id": "ebgpMultihop" },
                 { "id": "peerGroup" }
             ]

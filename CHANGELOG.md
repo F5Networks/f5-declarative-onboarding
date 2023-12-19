@@ -4,7 +4,7 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.42.0
 ### Added
 - AUTOTOOL-4071: Ability to set WAF Settings: ecard_max_http_req_uri_len, ignore_cookies_msg_key, and cookie_secure_attr
-
+- AUTOTOOL-4107: ([GitHub 368](https://github.com/F5Networks/f5-declarative-onboarding/issues/368)): RoutingBGP neighbors addressFamilies asOverrideEnabled property
 
 ### Fixed
 - AUTOTOOL-4058: ([GitHub 363](https://github.com/F5Networks/f5-declarative-onboarding/issues/363)) and ([GitHub 329](https://github.com/F5Networks/f5-declarative-onboarding/issues/329)): Creating a RoutingBGP fails if a RouteMap is not in the declaration
