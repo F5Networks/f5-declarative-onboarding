@@ -68,33 +68,33 @@ If `npx` is available on your system, you can run the locally installed version 
         "admin_ip": "10.1.1.10",
         "f5_rest_user": {
             "username": "admin",
-            "password": "admin_password"
+            "password": "admin_pass1word"
         },
         "ssh_user": {
             "username": "root",
-            "password": "root_password"
+            "password": "root_pass1word"
         }
     },
     {
         "admin_ip": "10.1.2.3",
         "f5_rest_user": {
             "username": "admin",
-            "password": "admin_password"
+            "password": "admin_pass1word"
         },
         "ssh_user": {
             "username": "root",
-            "password": "root_password"
+            "password": "root_pass1word"
         }
     },
     {
         "admin_ip": "10.123.45.67",
         "f5_rest_user": {
             "username": "admin",
-            "password": "admin_password"
+            "password": "admin_pass1word"
         },
         "ssh_user": {
             "username": "root",
-            "password": "root_password"
+            "password": "root_pass1word"
         }
     }
 ]
@@ -104,5 +104,5 @@ If `npx` is available on your system, you can run the locally installed version 
 * Property tests are run against 1 BIG-IP
 * To run property tests
 ```
-DO_HOST=<ip> DO_PORT=<specific_port_to_use> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_password> BIGIP_IMAGE=<image_name_of_bigip_under_test> npm run property
+DO_HOST=<ip> DO_PORT=<specific_port_to_use> DO_USERNAME=<admin_username> DO_PASSWORD=<admin_pass1word> BIGIP_IMAGE=<image_name_of_bigip_under_test> npm run property
 ```

@@ -396,10 +396,10 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -408,10 +408,10 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteHost": "/foo/bar/0",
                     "remoteUsername": "yourUser",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
@@ -421,10 +421,10 @@ describe('dsc.schema.json', () => {
             it('should invalidate missing localUsername', () => {
                 const data = {
                     "class": "DeviceTrust",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.strictEqual(validate(data), false, 'missing localUsername should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "localUsername"'), -1);
@@ -436,7 +436,7 @@ describe('dsc.schema.json', () => {
                     "localUsername": "myUser",
                     "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.strictEqual(validate(data), false, 'missing localPassword should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "localPassword"'), -1);
@@ -446,9 +446,9 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteUsername": "yourUser",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.strictEqual(validate(data), false, 'missing remoteHost should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "remoteHost"'), -1);
@@ -458,9 +458,9 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteHost": "192.0.2.10",
-                    "remotePassword": "yourPassword"
+                    "remotePassword": "yourPass1word"
                 };
                 assert.strictEqual(validate(data), false, 'missing remoteUsername should not be valid');
                 assert.notStrictEqual(getErrorString().indexOf('"missingProperty": "remoteUsername"'), -1);
@@ -470,7 +470,7 @@ describe('dsc.schema.json', () => {
                 const data = {
                     "class": "DeviceTrust",
                     "localUsername": "myUser",
-                    "localPassword": "myPassword",
+                    "localPassword": "myPass1word",
                     "remoteHost": "192.0.2.10",
                     "remoteUsername": "yourUser"
                 };
