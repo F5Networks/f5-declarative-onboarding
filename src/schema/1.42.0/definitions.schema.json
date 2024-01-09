@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://raw.githubusercontent.com/F5Networks/f5-declarative-onboarding/main/src/schema/latest/definitions.schema.json",
+    "title": "F5 BIG-IP Declarative Onboarding Definitions declaration",
+    "description": "Shared definitions for onboarding a BIG-IP.",
+    "type": "object",
+    "definitions": {
+        "F5string": {
+            "description": "String value in base64",
+            "type": "object",
+            "properties": {
+                "base64": {
+                    "description": "Base64-encoded value (in JSON string)",
+                    "type": "string",
+                    "format": "f5base64"
+                },
+                "url": {
+                    "$ref": "#/definitions/Resource_URL"
+                }
+            },
+            "additionalProperties": false,
+            "minProperties": 1,
+            "maxProperties": 1
+        },
+        "pkiCertificate": {
+            "description": "PKI certificate with optional chain",
+            "required": ["certificate"],
+            "properties": {
+                "certificate": {
+                    "description": "X.509 public-key certificate",
+                    "allOf": [
+                        { "$ref": "#/definitions/F5string" }
+                    ],
+                    "f5fetch": "pki-cert"
+                },
+                "privateKey": {
+                    "description": "Private key matching certificate's public key (optional)",
+                    "allOf": [
+                        { "$ref": "#/definitions/F5string" }
+                    ],
+                    "f5fetch": "pki-key"
+                }
+            }
+        },
+        "Label": {
+          "title": "Label",
+          "description": "Optional friendly name for this object",
+          "type": "string",
+          "format": "f5label"
+        },
+        "Remark": {
+          "title": "Remark",
+          "description": "Arbitrary (brief) text pertaining to this object (optional)",
+          "type": "string",
+          "format": "f5remark"
+        },
+        "Resource_URL": {
+            "title": "Resource URL",
+            "description": "The URL for a required resource",
+            "type": "string",
+            "format": "uri"
+        }
+    }
+}
