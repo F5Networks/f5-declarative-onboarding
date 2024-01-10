@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -293,7 +293,7 @@ describe('auth.schema.json', () => {
                 it(`should validate ${role} remote role`, () => {
                     const dataCopy = JSON.parse(JSON.stringify(data));
                     dataCopy.role = role;
-                    assert.ok(dataCopy, getErrorString(validate));
+                    assert.ok(validate(dataCopy), getErrorString(validate));
                 });
             });
 
@@ -302,7 +302,13 @@ describe('auth.schema.json', () => {
                 dataCopy.role = '%F5-LTM-User-Role';
                 dataCopy.console = '%F5-LTM-User-Shell';
                 dataCopy.userPartition = '%F5-LTM-User-Partition';
-                assert.ok(dataCopy, getErrorString(validate));
+                assert.ok(validate(dataCopy), getErrorString(validate));
+            });
+
+            it('should validate custom partition', () => {
+                const dataCopy = JSON.parse(JSON.stringify(data));
+                dataCopy.userPartition = 'partition1';
+                assert.ok(validate(dataCopy), getErrorString(validate));
             });
         });
 
@@ -317,12 +323,6 @@ describe('auth.schema.json', () => {
                 const dataCopy = JSON.parse(JSON.stringify(data));
                 dataCopy.console = 'enabled';
                 assert.strictEqual(validate(dataCopy), false, 'incorrect RemoteAuthRole console should fail');
-            });
-
-            it(`should invalidate RemoteAuthRole when invalid userPartition value`, () => {
-                const dataCopy = JSON.parse(JSON.stringify(data));
-                dataCopy.userPartition = 'partition1';
-                assert.strictEqual(validate(dataCopy), false, 'incorrect RemoteAuthRole userPartition should fail');
             });
         });
     });

@@ -244,6 +244,12 @@
             "neighbors": [
                 {
                     "address": "10.1.1.2",
+                    "addressFamilies": [
+                        {
+                            "internetProtocol": "all",
+                            "asOverrideEnabled": true
+                        }
+                    ],
                     "ebgpMultihop": 2,
                     "peerGroup": "Neighbor"
                 }

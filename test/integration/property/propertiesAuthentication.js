@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -478,6 +478,10 @@ describe('Authentication', function testAuthentication() {
         }
 
         const options = {
+            bigipItems: [{
+                endpoint: '/tm/auth/partition',
+                data: { name: 'CustomPartition' }
+            }],
             getMcpObject: {
                 className: 'AuthRemoteRole',
                 itemKind: 'tm:auth:remote-role:role-info:role-infostate',
@@ -488,33 +492,33 @@ describe('Authentication', function testAuthentication() {
         const properties = [
             {
                 name: 'attribute',
-                inputValue: ['F5-LTM-User-Info-1=some_admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=some-admins'],
-                expectedValue: ['F5-LTM-User-Info-1=some_admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=some-admins']
+                inputValue: ['F5-LTM-User-Info-1=some_admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=some-admins'],
+                expectedValue: ['F5-LTM-User-Info-1=some_admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=other-admins', 'F5-LTM-User-Info-1=some-admins']
             },
             {
                 name: 'console',
-                inputValue: ['disabled', 'tmsh', 'disabled'],
-                expectedValue: ['disable', 'tmsh', 'disable']
+                inputValue: ['disabled', 'tmsh', 'tmsh', 'disabled'],
+                expectedValue: ['disable', 'tmsh', 'tmsh', 'disable']
             },
             {
                 name: 'lineOrder',
-                inputValue: [500, 1001, 500],
-                expectedValue: [500, 1001, 500]
+                inputValue: [500, 1001, 1001, 500],
+                expectedValue: [500, 1001, 1001, 500]
             },
             {
                 name: 'remoteAccess',
-                inputValue: [false, true, false],
-                expectedValue: ['enabled', 'disabled', 'enabled']
+                inputValue: [false, true, true, false],
+                expectedValue: ['enabled', 'disabled', 'disabled', 'enabled']
             },
             {
                 name: 'role',
-                inputValue: ['application-editor', 'admin', 'application-editor'],
-                expectedValue: ['application-editor', 'admin', 'application-editor']
+                inputValue: ['application-editor', 'admin', 'admin', 'application-editor'],
+                expectedValue: ['application-editor', 'admin', 'admin', 'application-editor']
             },
             {
                 name: 'userPartition',
-                inputValue: ['Common', 'all', 'Common'],
-                expectedValue: ['Common', undefined, 'Common'],
+                inputValue: ['Common', 'all', 'CustomPartition', 'Common'],
+                expectedValue: ['Common', undefined, 'CustomPartition', 'Common'],
                 extractFunction: (o) => o.userPartition.name
             }
         ];

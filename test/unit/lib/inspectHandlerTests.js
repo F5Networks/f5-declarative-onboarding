@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -817,6 +817,12 @@ describe('inspectHandler', () => {
             '/tm/net/routing/bgp/~Common~exampleBGP/neighbor': [
                 {
                     name: '10.1.1.2',
+                    addressFamily: [
+                        {
+                            name: 'ipv4',
+                            asOverride: 'enabled'
+                        }
+                    ],
                     ebgpMultihop: 2,
                     peerGroup: 'Neighbor_IN',
                     unwanted: 1
@@ -1736,12 +1742,14 @@ describe('inspectHandler', () => {
                 {
                     id: 'id0',
                     name: 'policy_history_max_total_size',
-                    value: 1000
+                    value: 1000,
+                    format: 'integer'
                 },
                 {
                     id: 'id1',
                     name: 'max_json_policy_size',
-                    value: 1000
+                    value: 1000,
+                    format: 'integer'
                 }
             ]
         });
@@ -1995,6 +2003,12 @@ describe('inspectHandler', () => {
                             neighbors: [
                                 {
                                     address: '10.1.1.2',
+                                    addressFamilies: [
+                                        {
+                                            internetProtocol: 'ipv4',
+                                            asOverrideEnabled: true
+                                        }
+                                    ],
                                     ebgpMultihop: 2,
                                     peerGroup: 'Neighbor_IN'
                                 }

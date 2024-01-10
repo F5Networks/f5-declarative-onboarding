@@ -1,6 +1,18 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.42.0
+### Added
+- AUTOTOOL-4071: Ability to set WAF Settings: ecard_max_http_req_uri_len, ignore_cookies_msg_key, and cookie_secure_attr
+- AUTOTOOL-4107: ([GitHub 368](https://github.com/F5Networks/f5-declarative-onboarding/issues/368)): RoutingBGP neighbors addressFamilies asOverrideEnabled property
+
+### Fixed
+- AUTOTOOL-4058: ([GitHub 363](https://github.com/F5Networks/f5-declarative-onboarding/issues/363)) and ([GitHub 329](https://github.com/F5Networks/f5-declarative-onboarding/issues/329)): Creating a RoutingBGP fails if a RouteMap is not in the declaration
+
+### Changed
+
+### Removed
+
 ## 1.41.0
 ### Added
 - AUTOTOOL-4020: ([GitHub 86](https://github.com/F5Networks/f5-declarative-onboarding/issues/86)): Update trust certificates when updating device certificate
@@ -17,6 +29,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-3931: ([GitHub Issue 656](https://github.com/F5Networks/f5-appsvcs-extension/issues/656)): Add WAF Settings configuration support on DO
 - AUTOTOOL-3959: Add routeDomain property to RoutingPrefixList
 - AUTOTOOL-1631: ([GitHub Issue 139](https://github.com/F5Networks/f5-declarative-onboarding/issues/139)): Configure username and password prompts
+- AUTOTOOL-4018: ([GitHub Issue 335](https://github.com/F5Networks/f5-declarative-onboarding/issues/335)): Support for adding existing partition as userPartition in RemoteAuthRole
 
 ### Fixed
 - AUTOTOOL-3942: Fix documentation output from newlines in guiSecurityBannerText

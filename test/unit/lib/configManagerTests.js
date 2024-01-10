@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1486,6 +1486,69 @@ describe('configManager', () => {
                                         maxAuthTries: 10,
                                         maxStartups: '5',
                                         protocol: 1
+                                    }
+                                }
+                            });
+                    });
+            });
+        });
+
+        describe('SecurityWaf patches', () => {
+            it('should replace ID with USER_DEFINED for user defined variables', () => {
+                const configItems = [
+                    {
+                        path: '/tm/asm/advanced-settings',
+                        schemaClass: 'SecurityWaf',
+                        properties: [
+                            { id: 'id' },
+                            { id: 'name' },
+                            { id: 'value' },
+                            { id: 'format' }
+                        ]
+                    }
+                ];
+
+                listResponses['/tm/asm/advanced-settings'] = [
+                    {
+                        id: 'a8QFQNpyZwmx2mRKELWVjg',
+                        name: 'ignore_cookies_msg_key',
+                        value: '1',
+                        format: 'string'
+                    },
+                    {
+                        id: 'vO3CxwQgcbycM7iTqbnl9w',
+                        name: 'policy_history_max_total_size',
+                        value: 0,
+                        format: 'integer'
+                    }
+                ];
+
+                const configManager = new ConfigManager(configItems, bigIpMock, state);
+
+                return configManager.get({}, doState)
+                    .then(() => {
+                        assert.deepEqual(state.originalConfig,
+                            {
+                                parsed: true,
+                                version: '0.0.0-0',
+                                Common: {
+                                    InternalUse: {
+                                        deviceNames: {
+                                            deviceName: 'device1',
+                                            hostName: 'myhost.bigip.com'
+                                        }
+                                    },
+                                    SecurityWaf: {
+                                        advancedSettings: {
+                                            ignore_cookies_msg_key: {
+                                                id: 'USER_DEFINED',
+                                                value: '1'
+                                            },
+                                            policy_history_max_total_size: {
+                                                id: 'vO3CxwQgcbycM7iTqbnl9w',
+                                                value: 0
+                                            }
+                                        }
                                     }
                                 }
                             });

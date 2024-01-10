@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -798,7 +798,7 @@ function applyRoutingBgpFixes(declaration) {
                 }
             });
 
-            // If the internetProtocol 'all' is specified.  Split it up into 'ipv4' and 'ipv6'.
+            // If the internetProtocol 'all' is specified. Split it up into 'ipv4' and 'ipv6'.
             // BIGIP does this and then iControl responds with the split result in the config manager.
             // Split it now so the current config and desired config will match.
             if (bgp.addressFamily.length === 1 && bgp.addressFamily[0].name === 'all') {
@@ -810,10 +810,29 @@ function applyRoutingBgpFixes(declaration) {
             }
         }
 
+        // If the internetProtocol 'all' is specified. Split it up into 'ipv4' and 'ipv6'.
+        // BIGIP does this and then iControl responds with the split result in the config manager.
+        // Split it now so the current config and desired config will match.
+        (bgp.neighbors || []).forEach((neighbor) => {
+            if ((neighbor.addressFamily || []).length === 1 && neighbor.addressFamily[0].name === 'all') {
+                const ipv4 = JSON.parse(JSON.stringify(neighbor.addressFamily[0]));
+                ipv4.name = 'ipv4';
+                const ipv6 = JSON.parse(JSON.stringify(neighbor.addressFamily[0]));
+                ipv6.name = 'ipv6';
+                neighbor.addressFamily = [ipv4, ipv6];
+            }
+
+            // fill in missing neighbors addressFamily defaults that are difficult to specify in schema
+            processAddressFamiliesDefaults(neighbor, {
+                asOverride: 'disabled'
+            });
+            doUtil.sortArrayByValueString(neighbor.addressFamily, 'name');
+        });
+
         // fill in missing addressFamily defaults that are difficult to specify in schema
         processAddressFamiliesDefaults(bgp);
 
-        // sort addressFamilies by name order ipv4 first
+        // sort top-level addressFamilies by name order ipv4 first
         doUtil.sortArrayByValueString(bgp.addressFamily, 'name');
 
         // sort redistributionList array in routingProtocol alphabetical order
@@ -827,26 +846,23 @@ function applyRoutingBgpFixes(declaration) {
         // sort peerGroups array in name alphabetical order
         doUtil.sortArrayByValueString(bgp.peerGroups, 'name');
 
-        // fill in missing peerGroups addressFamily defaults that are difficult to specify in schema
         (bgp.peerGroups || []).forEach((peer) => {
+            // fill in missing peerGroups addressFamily defaults that are difficult to specify in schema
             processAddressFamiliesDefaults(peer, {
                 routeMap: {},
                 softReconfigurationInbound: 'disabled'
             });
-        });
 
-        (bgp.peerGroups || []).forEach((peer) => {
-            if (peer.addressFamily.length === 0) {
-                delete peer.addressFamily;
-            } else {
-                // add tenant prefix to peerGroups addressFamily routeMap if needed to match current config
-                peer.addressFamily.forEach((family) => {
-                    if (family.routeMap) {
-                        applyTenantPrefix(family.routeMap, 'in', tenant);
-                        applyTenantPrefix(family.routeMap, 'out', tenant);
-                    }
-                });
-            }
+            // sort addressFamilies array in name alphabetical order
+            doUtil.sortArrayByValueString(peer.addressFamily, 'name');
+
+            // add tenant prefix to peerGroups addressFamily routeMap if needed to match current config
+            peer.addressFamily.forEach((family) => {
+                if (family.routeMap) {
+                    applyTenantPrefix(family.routeMap, 'in', tenant);
+                    applyTenantPrefix(family.routeMap, 'out', tenant);
+                }
+            });
         });
     });
 }
@@ -1222,6 +1238,11 @@ function applySecurityWafFixes(declaration) {
             ? this.state.originalConfig.Common.SecurityWaf.advancedSettings : {};
 
         securityWaf.advancedSettings.forEach((setting) => {
+            // User defined vars are all strings
+            if (ADVANCED_SETTINGS_IDS[setting.name] === 'USER_DEFINED') {
+                setting.value = setting.value.toString();
+            }
+
             advancedSettings[setting.name] = {
                 value: setting.value,
                 id: ADVANCED_SETTINGS_IDS[setting.name]
