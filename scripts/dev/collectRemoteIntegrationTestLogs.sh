@@ -5,9 +5,19 @@ if [[ "$#" -ne 1 ]]; then
     exit 1
 fi
 
+# Colors
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 TEST_HARNESS_FILE=$1
+
+if [ -z "$TEST_HARNESS_FILE" ]; then
+    echo -e "${RED}TEST_HARNESS_FILE is required as a parameter.${NC}"
+    exit 1
+fi
+
 TEST_IPS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].admin_ip))
 TEST_USERS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].ssh_user.username))
 TEST_PASSWORDS=($(cat "$TEST_HARNESS_FILE" | jq -r .[].ssh_user.password))

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1189,6 +1189,9 @@ function handleRoutingBGP() {
                         bgp.neighbors.forEach((n) => {
                             const neighborBody = {};
                             neighborBody.name = n.name;
+                            if (n.addressFamily) {
+                                neighborBody.addressFamily = n.addressFamily;
+                            }
                             neighborBody.ebgpMultihop = n.ebgpMultihop;
                             neighborBody.peerGroup = n.peerGroup;
                             neighbor.push(neighborBody);

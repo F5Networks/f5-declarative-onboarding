@@ -131,6 +131,12 @@
             "neighbors": [
                 {
                     "address": "192.0.2.1",
+                    "addressFamilies": [
+                        {
+                            "internetProtocol": "ipv4",
+                            "asOverrideEnabled": true
+                        }
+                    ],
                     "ebgpMultihop": 2,
                     "peerGroup": "Neighbor"
                 },

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,14 +89,34 @@ function handleSecurityWaf() {
         }
 
         if (advancedSettings) {
+            const cliCommand = '/usr/share/ts/bin/add_del_internal';
+            const originalAdvancedSettings = doUtil.getDeepValue(this.state.originalConfig, 'Common.SecurityWaf.advancedSettings') || {};
+            const currentAdvancedSettings = doUtil.getDeepValue(this.state.currentConfig, 'Common.SecurityWaf.advancedSettings') || {};
+
             Object.keys(advancedSettings).forEach((setting) => {
-                const id = ADVANCED_SETTINGS_IDS[setting];
-                promises.push(this.bigIp.modify(`${PATHS.WafAdvancedSettings}/${id}`, advancedSettings[setting]));
+                if (ADVANCED_SETTINGS_IDS[setting] === 'USER_DEFINED') {
+                    promises.push(doUtil.executeBashCommandIControl(this.bigIp, `${cliCommand} add ${setting} ${advancedSettings[setting].value}`));
+                } else {
+                    const id = ADVANCED_SETTINGS_IDS[setting];
+                    promises.push(this.bigIp.modify(`${PATHS.WafAdvancedSettings}/${id}`, advancedSettings[setting]));
+                }
+            });
+
+            // Check for user defined items that have been deleted from the declaration and were not in originalConfig
+            Object.keys(ADVANCED_SETTINGS_IDS).forEach((setting) => {
+                if (ADVANCED_SETTINGS_IDS[setting] === 'USER_DEFINED') {
+                    if (currentAdvancedSettings[setting]
+                        && !(advancedSettings[setting] || originalAdvancedSettings[setting])) {
+                        promises.push(doUtil.executeBashCommandIControl(this.bigIp, `${cliCommand} del ${setting}`));
+                    }
+                }
             });
         }
 
-        return Promise.all(promises)
-            .then(() => doUtil.restartService(this.bigIp, 'asm', { taskId: this.state.id }));
+        if (promises.length > 0) {
+            return Promise.all(promises)
+                .then(() => doUtil.restartService(this.bigIp, 'asm', { taskId: this.state.id }));
+        }
     }
     return Promise.resolve();
 }

@@ -31,13 +31,13 @@
                     }
                 },
                 "shell": "tmsh",
-                "password": "adminpassword"
+                "password": "adminpass1word"
             },
             "root": {
                 "class": "User",
                 "userType": "root",
-                "newPassword": "rootpassword",
-                "oldPassword": "adminpassword"
+                "newPassword": "rootpass1word",
+                "oldPassword": "adminpass1word"
             }
         }
     },

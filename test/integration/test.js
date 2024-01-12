@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -550,6 +550,16 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     neighbors: [
                         {
                             name: '10.1.1.2',
+                            addressFamily: [
+                                {
+                                    name: 'ipv4',
+                                    asOverride: 'enabled'
+                                },
+                                {
+                                    name: 'ipv6',
+                                    asOverride: 'enabled'
+                                }
+                            ],
                             ebgpMultihop: 2,
                             peerGroup: 'Neighbor'
                         }
@@ -1284,7 +1294,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
         });
     });
 
-    describe('Test Example Endpoint', () => {
+    describe('Test Example Endpoint', function testExample() {
+        this.timeout(5000);
         const exampleEndpoint = `${constants.DO_API}/example`;
         let thisMachine;
         let authData;

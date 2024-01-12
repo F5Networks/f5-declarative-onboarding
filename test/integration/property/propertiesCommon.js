@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -735,7 +735,7 @@ function configurePromiseForSuccess(declaration, partition, targetClass, propert
                     delay: 10000,
                     retries: (2.5 * 60 * 1000) / 10000
                 };
-                return promiseUtil.retryPromise((decl, info) => postDeclaration(decl, { logInfo: info })
+                return promiseUtil.retryPromise((decl) => postDeclaration(decl, { logInfo })
                     .then((result) => {
                         if (result.result.code === 503) {
                             throw new Error('Target is busy');

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1029,6 +1029,12 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            addressFamilies: [
+                                {
+                                    asOverrideEnabled: true,
+                                    internetProtocol: 'ipv4'
+                                }
+                            ],
                             ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
@@ -1078,6 +1084,12 @@ describe('network.schema.json', () => {
                     neighbors: [
                         {
                             address: '10.2.2.2',
+                            addressFamilies: [
+                                {
+                                    asOverrideEnabled: true,
+                                    internetProtocol: 'ipv4'
+                                }
+                            ],
                             ebgpMultihop: 2,
                             peerGroup: 'Neighbor_IN'
                         }
@@ -1103,7 +1115,7 @@ describe('network.schema.json', () => {
                 });
             });
 
-            it('should validate declaration using all internetProtocols in addressFamilies', () => {
+            it('should validate declaration using all of the internetProtocols in top level addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
                     addressFamilies: [
@@ -1166,6 +1178,115 @@ describe('network.schema.json', () => {
                                 routeMap: 'exampleRouteMap3'
                             }
                         ]
+                    }
+                ]);
+            });
+
+            it('should validate declaration using neighbors without addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 65010,
+                    neighbors: [
+                        {
+                            address: '192.0.2.11',
+                            peerGroup: 'Neighbor_IN'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.neighbors, [
+                    {
+                        address: '192.0.2.11',
+                        ebgpMultihop: 1,
+                        peerGroup: 'Neighbor_IN'
+                    }
+                ]);
+            });
+
+            it('should validate declaration using all of the internetProtocols in neighbors addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 65010,
+                    neighbors: [
+                        {
+                            address: '192.0.2.11',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4'
+                                },
+                                {
+                                    internetProtocol: 'ipv6'
+                                },
+                                {
+                                    internetProtocol: 'all'
+                                }
+                            ],
+                            peerGroup: 'Neighbor_IN'
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.neighbors, [
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv4',
+                                asOverrideEnabled: false
+                            },
+                            {
+                                internetProtocol: 'ipv6',
+                                asOverrideEnabled: false
+                            },
+                            {
+                                internetProtocol: 'all',
+                                asOverrideEnabled: false
+                            }
+                        ],
+                        ebgpMultihop: 1,
+                        peerGroup: 'Neighbor_IN'
+                    }
+                ]);
+            });
+
+            it('should validate declaration using all of the internetProtocols in peerGroups addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 65010,
+                    peerGroups: [
+                        {
+                            name: 'peerGroupTest',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv4'
+                                },
+                                {
+                                    internetProtocol: 'ipv6'
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.peerGroups, [
+                    {
+                        name: 'peerGroupTest',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv4',
+                                routeMap: {},
+                                softReconfigurationInboundEnabled: false
+                            },
+                            {
+                                internetProtocol: 'ipv6',
+                                routeMap: {},
+                                softReconfigurationInboundEnabled: false
+                            }
+                        ],
+                        remoteAS: 0
                     }
                 ]);
             });
@@ -1294,8 +1415,22 @@ describe('network.schema.json', () => {
             it('should populate empty gracefulRestart with defaults', () => {
                 const data = {
                     class: 'RoutingBGP',
-                    localAS: 1,
-                    gracefulRestart: {}
+                    gracefulRestart: {},
+                    localAS: 1
+                };
+
+                assert.ok(validate(data), getErrorString(validate));
+                assert.deepStrictEqual(data.gracefulRestart, {
+                    gracefulResetEnabled: false,
+                    restartTime: 0,
+                    stalePathTime: 0
+                });
+            });
+
+            it('should populate missing gracefulRestart with defaults', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 1
                 };
 
                 assert.ok(validate(data), getErrorString(validate));
@@ -1323,7 +1458,7 @@ describe('network.schema.json', () => {
                 );
             });
 
-            it('should invalidate additional properties in addressFamilies', () => {
+            it('should invalidate additional properties in top level addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
                     localAS: 1,
@@ -1366,7 +1501,7 @@ describe('network.schema.json', () => {
                 );
             });
 
-            it('should invalidate unknown internetProtocol in addressFamilies object', () => {
+            it('should invalidate unknown internetProtocol in top level addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
                     localAS: 1,
@@ -1385,7 +1520,7 @@ describe('network.schema.json', () => {
                 );
             });
 
-            it('should invalidate unknown routerProtocol in addressFamilies object', () => {
+            it('should invalidate unknown routerProtocol in top level addressFamilies', () => {
                 const data = {
                     class: 'RoutingBGP',
                     localAS: 1,
@@ -1409,7 +1544,7 @@ describe('network.schema.json', () => {
                 );
             });
 
-            it('should invalidate additional properties in gracefulRestart object', () => {
+            it('should invalidate additional properties in gracefulRestart', () => {
                 const data = {
                     class: 'RoutingBGP',
                     localAS: 1,
@@ -1426,7 +1561,7 @@ describe('network.schema.json', () => {
                 );
             });
 
-            it('should invalidate additional properties in neighbors object', () => {
+            it('should invalidate additional properties in neighbors', () => {
                 const data = {
                     class: 'RoutingBGP',
                     localAS: 1,
@@ -1442,6 +1577,59 @@ describe('network.schema.json', () => {
                     getErrorString().indexOf('should NOT have additional properties'),
                     -1,
                     `Errored but not because of additional properties in neighbors object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate additional properties in neighbors addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 1,
+                    neighbors: [
+                        {
+                            address: '10.2.2.2',
+                            addressFamilies: [
+                                {
+                                    additionalProperty: true,
+                                    asOverrideEnabled: true,
+                                    internetProtocol: 'ipv4'
+                                }
+                            ],
+                            peerGroup: 'peerGroupTest'
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail if additional property provided');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should NOT have additional properties'),
+                    -1,
+                    `Errored but not because of additional properties in neighbors object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate unknown internetProtcol in neighbors addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 1,
+                    neighbors: [
+                        {
+                            address: '10.2.2.2',
+                            addressFamilies: [
+                                {
+                                    asOverrideEnabled: true,
+                                    internetProtocol: 'ipv5'
+                                }
+                            ],
+                            peerGroup: 'peerGroupTest'
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail due to invalid internetProtocol');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1,
+                    `Errored but not because of invalid internetProtocol:\n${getErrorString()}`
                 );
             });
 
@@ -1461,6 +1649,30 @@ describe('network.schema.json', () => {
                     getErrorString().indexOf('should NOT have additional properties'),
                     -1,
                     `Errored but not because of additional properties in peerGroups object:\n${getErrorString()}`
+                );
+            });
+
+            it('should invalidate unknown internetProtcol in peerGroups addressFamilies', () => {
+                const data = {
+                    class: 'RoutingBGP',
+                    localAS: 1,
+                    peerGroups: [
+                        {
+                            name: 'peerGroupTest',
+                            addressFamilies: [
+                                {
+                                    internetProtocol: 'ipv5'
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                assert.strictEqual(validate(data), false, 'This should fail due to invalid internetProtocol');
+                assert.notStrictEqual(
+                    getErrorString().indexOf('should be equal to one of the allowed values'),
+                    -1,
+                    `Errored but not because of invalid internetProtocol:\n${getErrorString()}`
                 );
             });
 

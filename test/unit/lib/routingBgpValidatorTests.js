@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ const Validator = require('../../../src/lib/routingBgpValidator');
 const validator = new Validator();
 
 describe('routingBgpValidator', () => {
-    describe('addressFamilies', () => {
+    describe('addressFamilies top level', () => {
         let wrapper;
 
         beforeEach(() => {
@@ -103,6 +103,142 @@ describe('routingBgpValidator', () => {
                     .then((validation) => {
                         assert.ok(!validation.isValid);
                         assert.strictEqual(validation.errors[0], 'RoutingBGP addressFamilies internetProtocol value "all" must not be used with any other internetProtocol value');
+                    });
+            });
+        });
+    });
+
+    describe('addressFamilies neighbors', () => {
+        let wrapper;
+
+        beforeEach(() => {
+            wrapper = {
+                targetHost: '192.0.2.10',
+                declaration: {
+                    Common: {
+                        exampleRoutingBgp: {
+                            class: 'RoutingBGP',
+                            localAS: 1,
+                            neighbors: []
+                        }
+                    }
+                }
+            };
+        });
+
+        describe('valid', () => {
+            it('should validate when internetProtocol is set to all', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'all'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(validation.isValid);
+                    });
+            });
+
+            it('should validate when internetProtocol is set to ipv4', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv4'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(validation.isValid);
+                    });
+            });
+
+            it('should validate when internetProtocol is set to ipv6', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv6'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(validation.isValid);
+                    });
+            });
+
+            it('should validate when internetProtocol is set to ipv4 and ipv6', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv4'
+                            },
+                            {
+                                internetProtocol: 'ipv6'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(validation.isValid);
+                    });
+            });
+        });
+
+        describe('invalid', () => {
+            it('should invalidate when internetProtocol is set to ipv4 and all', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv4'
+                            },
+                            {
+                                internetProtocol: 'all'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(!validation.isValid);
+                        assert.strictEqual(validation.errors[0], 'RoutingBGP neighbors addressFamilies internetProtocol value "all" must not be used with any other internetProtocol value');
+                    });
+            });
+
+            it('should invalidate when internetProtocol is set to ipv6 and all', () => {
+                wrapper.declaration.Common.exampleRoutingBgp.neighbors.push(
+                    {
+                        address: '192.0.2.11',
+                        addressFamilies: [
+                            {
+                                internetProtocol: 'ipv6'
+                            },
+                            {
+                                internetProtocol: 'all'
+                            }
+                        ]
+                    }
+                );
+                return validator.validate(wrapper)
+                    .then((validation) => {
+                        assert.ok(!validation.isValid);
+                        assert.strictEqual(validation.errors[0], 'RoutingBGP neighbors addressFamilies internetProtocol value "all" must not be used with any other internetProtocol value');
                     });
             });
         });
@@ -283,6 +419,29 @@ describe('routingBgpValidator', () => {
                     [0, 1, 2, 3].forEach((i) => {
                         assert.strictEqual(validation.errors[i], `RoutingBGP peerGroups addressFamilies routeMap exampleRouteMap${i + 1} must use the same routeDomain as RoutingBGP (two)`);
                     });
+                });
+        });
+
+        it('should validate if RoutingBGP and no RouteMap in declaration', () => {
+            wrapper.declaration.Common = {
+                exampleRoutingBgp: {
+                    class: 'RoutingBGP',
+                    localAS: 1,
+                    peerGroups: [
+                        {
+                            name: 'Neighbor1',
+                            addressFamilies: []
+                        },
+                        {
+                            name: 'Neighbor2',
+                            addressFamilies: []
+                        }
+                    ]
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
                 });
         });
     });

@@ -2,6 +2,15 @@
 
 set -e
 
+# Colors
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+if [ -z "$BIGIPS_ADDRESSES" ]; then
+    echo -e "${RED}BIGIPS_ADDRESSES is required.${NC}"
+    exit 1
+fi
+
 IPS_ARRAY=($(echo $BIGIPS_ADDRESSES))
 
 echo '[' | tr -d '\n'

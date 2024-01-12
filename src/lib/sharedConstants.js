@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 F5, Inc.
+ * Copyright 2024 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,11 +133,13 @@ module.exports = {
         cookie_httponly_attr: 'yWZ5eGK1ntnYaTxblMNyww',
         cookie_max_age: '1XJcDTbBxqP0GtOcdQzF0g',
         cookie_renewal_time_stamp: 'Y2xm8sicyUqvtYW7XdazLQ',
+        cookie_secure_attr: 'USER_DEFINED',
         ecard_max_http_req_uri_len: '3Rteo2zkBA9z8nzwsCgrvQ',
         ecard_regexp_email: 'Xd48JLria9Xn13bh9hs5bA',
         ecard_regexp_decimal: 'pKEKBwZiy7KE4hcSP218sQ',
         ecard_regexp_phone: 'B6n-QlJdEAmu35GYHCjcaQ',
         icap_uri: 'G0OtDDhrirtc3DAvVIL3qA',
+        ignore_cookies_msg_key: 'USER_DEFINED',
         LogSignatures: 'DL-dTgOI8EkErPNb89CqHQ',
         long_request_buffer_size: 'UGv8BV7NbLZZP4hgvBkk7g',
         long_request_mem_percentage: 'EmVXcGrEQcyx4D85aPY0tw',
