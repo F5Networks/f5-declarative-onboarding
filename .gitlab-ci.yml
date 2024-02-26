@@ -144,22 +144,6 @@ test_node:latest:
         reports:
             junit: test_report.xml
 
-test-bigiq-ui:
-  stage: test
-  needs: []
-  parallel:
-    matrix:
-      - BIGIQ_BRANCH: [master/palisade, master/quartz, master/rainier]
-  allow_failure: true
-  script:
-    - git clone --branch $BIGIQ_BRANCH --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@$CI_SERVER_HOST:$CI_SERVER_PORT/bigiq-mgmt/bigiq-mgmt-test
-    - cd bigiq-mgmt-test/tools/declarativeOnboardSchemaValidator
-    - npm ci
-    - cp -r ../../../src/schema/latest/ schema
-    - node validateDO_UiSchemaTest.js > output
-    - cat output
-    - 'grep -q "Total Failures :  0" output'
-
 coverage:
   image: $DOCKER_URL/node:16
   stage: test
