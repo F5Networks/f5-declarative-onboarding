@@ -83,10 +83,9 @@
     ```
   * git add, commit, and push.
   * Submit an MR for these changes and wait for approval.
-* Perform the "Actions on night before Go/No-Go meeting".
-* Perform the "Actions after go ahead from Go/No-Go meeting".
+* Perform the "Actions after confirming GO for release".
 
-### Actions on night before Go/No-Go meeting:
+### Actions after confirming GO for release:
 * Using the GUI, create 2 MRs
   * 1 MR to merge release branch to `main`.
   * 1 MR to merge release branch to `develop`.
@@ -101,8 +100,7 @@
     * `git push`
     * Via GUI, create an MR to merge this into `<main/develop>`
 * Using the GUI, create a tag on the `main` branch in the format `v<version>` (e.g. `v1.34.0`).
-### Actions after go ahead from Go/No-Go meeting:
-* Confirm with Hannah things are good to go.
+* Artifacts are copied from main to GitHub and Docker Hub by release management.
 * Close your Jira task when the release is complete.
 
 ## Documentation Release process
