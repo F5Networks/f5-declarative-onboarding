@@ -1,6 +1,16 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.43.0
+### Added
+
+### Fixed
+
+### Changed
+- Updated packages to latest available versions
+
+### Removed
+
 ## 1.42.0
 ### Added
 - AUTOTOOL-4071: Ability to set WAF Settings: ecard_max_http_req_uri_len, ignore_cookies_msg_key, and cookie_secure_attr
