@@ -103,8 +103,9 @@ A couple of things to note when including certificates and keys in a declaration
 - Like other settings in BIG-IP DO, if a subsequent declaration is posted without the certificate, BIG-IP DO will restore the certificate that was there when it first ran.
 
 See |certclass| in the schema reference for more information and usage.
+.. NOTE:: When you set property "updateTrustCerts": true, it will update the trusted certificate stores when the device certificate is updated. This property "updateTrustCerts" is supported on DO 1.41 and later.
 
-.. literalinclude:: ../../examples/deviceCertificate.json
+.. literalinclude:: ../../examples/deviceCertificateAndTrustCertificates.json
    :language: json
 
 :ref:`Back to top<auth-examples>`
