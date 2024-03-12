@@ -538,6 +538,61 @@ describe('networkHandler', () => {
                 });
         });
 
+        it('should handle routeDomain based SelfIps', () => {
+            const declaration = {
+                Common: {
+                    SelfIp: {
+                        selfIp1: {
+                            name: 'selfIp1',
+                            vlan: '/Common/vlan1',
+                            address: '192.0.2.60%3',
+                            trafficGroup: '/Common/traffic-group-local-only',
+                            allowService: ['tcp:1234', 'tcp:5678'],
+                            fwEnforcedPolicy: 'firewallPolicy'
+                        },
+                        selfIp2: {
+                            name: 'selfIp2',
+                            vlan: '/Common/vlan2',
+                            address: '192.0.2.110%3',
+                            trafficGroup: '/Common/traffic-group-local-only',
+                            allowService: 'default',
+                            fwStagedPolicy: 'firewallPolicy'
+                        }
+                    }
+                }
+            };
+
+            const networkHandler = new NetworkHandler(declaration, bigIpMock);
+            return networkHandler.process()
+                .then(() => {
+                    const selfIpData = dataSent[PATHS.SelfIp];
+                    assert.strictEqual(selfIpData[0].name, 'selfIp1');
+                    assert.strictEqual(selfIpData[0].vlan, '/Common/vlan1');
+                    assert.strictEqual(selfIpData[0].address, '192.0.2.60%3');
+                    assert.strictEqual(
+                        selfIpData[0].trafficGroup, '/Common/traffic-group-local-only'
+                    );
+                    assert.deepStrictEqual(
+                        selfIpData[0].allowService, ['tcp:1234', 'tcp:5678']
+                    );
+                    assert.strictEqual(selfIpData[0].partition, 'Common');
+                    assert.strictEqual(selfIpData[0].fwEnforcedPolicy, '/Common/firewallPolicy');
+                    assert.strictEqual(selfIpData[0].fwStagedPolicy, 'none');
+                    assert.strictEqual(selfIpData[1].name, 'selfIp2');
+                    assert.strictEqual(selfIpData[1].vlan, '/Common/vlan2');
+                    assert.strictEqual(selfIpData[1].address, '192.0.2.110%3');
+                    assert.strictEqual(
+                        selfIpData[1].trafficGroup, '/Common/traffic-group-local-only'
+                    );
+                    assert.strictEqual(
+                        selfIpData[1].allowService, 'default'
+                    );
+                    assert.strictEqual(selfIpData[1].partition, 'Common');
+                    assert.strictEqual(selfIpData[1].fwEnforcedPolicy, 'none');
+                    assert.strictEqual(selfIpData[1].fwStagedPolicy, '/Common/firewallPolicy');
+                });
+        });
+
         it('should prepend tenant if missing', () => {
             const declaration = {
                 Common: {
@@ -852,6 +907,94 @@ describe('networkHandler', () => {
                                 name: 'default',
                                 partition: 'Common',
                                 gw: '10.10.0.1',
+                                network: 'default',
+                                mtu: 1500
+                            });
+                    });
+            });
+
+            it('should delete and re-add routeDomain based routes in the same subnet', () => {
+                const declaration = {
+                    Common: {
+                        SelfIp: {
+                            selfIp1: {
+                                name: 'selfIp1',
+                                vlan: '/Common/vlan1',
+                                address: '10.10.0.0%10/24',
+                                trafficGroup: 'traffic-group-local-only'
+                            },
+                            selfIp2: {
+                                name: 'selfIp2',
+                                vlan: '/Common/vlan2',
+                                address: '10.20.0.0%10/24',
+                                trafficGroup: 'traffic-group-local-only'
+                            },
+                            selfIp3: {
+                                name: 'selfIp3',
+                                vlan: '/Common/vlan3',
+                                address: '10.10.0.0%10/24',
+                                trafficGroup: 'traffic-group-local-only'
+                            }
+                        }
+                    }
+                };
+
+                const routeToDelete = {
+                    name: 'default',
+                    partition: 'Common',
+                    gw: '10.10.0.1%10',
+                    network: 'default',
+                    mtu: 1500
+                };
+                const routeToKeep = {
+                    name: 'doNotDelete',
+                    partition: 'Common',
+                    gw: '10.20.0.1%10',
+                    network: 'other',
+                    mtu: 1400
+                };
+
+                // we need 2 existing self Ips to test that routes are not added to the delete list twice
+                bigIpMock.list = (path) => {
+                    if (path.startsWith(PATHS.SelfIp)) {
+                        if (path === PATHS.SelfIp) {
+                            return Promise.resolve(
+                                [
+                                    declaration.Common.SelfIp.selfIp1,
+                                    declaration.Common.SelfIp.selfIp2,
+                                    declaration.Common.SelfIp.selfIp3
+                                ]
+                            );
+                        }
+                        if (path === `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp1.name}`
+                            || path === `${PATHS.SelfIp}/~Common~${declaration.Common.SelfIp.selfIp3.name}`
+                        ) {
+                            return Promise.resolve();
+                        }
+                        const error404 = new Error();
+                        error404.code = 404;
+                        return Promise.reject(error404);
+                    }
+
+                    if (path.startsWith(PATHS.Route)) {
+                        return Promise.resolve([routeToDelete, routeToKeep]);
+                    }
+
+                    return Promise.resolve();
+                };
+
+                const networkHandler = new NetworkHandler(declaration, bigIpMock);
+                return networkHandler.process()
+                    .then(() => {
+                        assert.strictEqual(deletedPaths.length, 3);
+                        assert.strictEqual(deletedPaths[0], '/tm/net/route/~Common~default');
+                        assert.strictEqual(deletedPaths[1], '/tm/net/self/~Common~selfIp1');
+                        assert.strictEqual(deletedPaths[2], '/tm/net/self/~Common~selfIp3');
+                        assert.deepEqual(dataSent[PATHS.Route][0],
+                            {
+                                name: 'default',
+                                partition: 'Common',
+                                gw: '10.10.0.1%10',
                                 network: 'default',
                                 mtu: 1500
                             });

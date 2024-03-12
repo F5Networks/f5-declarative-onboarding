@@ -14,7 +14,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Added
 
 ### Fixed
-
+- AUTOTOOL-3832: ([GitHub 349](https://github.com/F5Networks/f5-declarative-onboarding/issues/349)): Fix modification of RouteDomain based SelfIPs 
 ### Changed
 - Updated packages to latest available versions
 
