@@ -1444,10 +1444,10 @@ function findMatchingRoutes(selfIpsToDelete) {
     return this.bigIp.list(PATHS.Route, null, cloudUtil.SHORT_RETRY)
         .then((routes) => {
             const existingRoutes = routes && Array.isArray(routes) ? routes.slice() : [];
-
             existingRoutes.forEach((route) => {
                 selfIpsToDelete.forEach((selfIp) => {
-                    if (route.gw && isInSubnet(route.gw, selfIp.address)) {
+                    if (route.gw && isInSubnet(doUtil.stripExistingRouteDomainID(route.gw),
+                        doUtil.stripExistingRouteDomainID(selfIp.address))) {
                         if (matchingRoutes.findIndex(elementMatches, route) === -1) {
                             matchingRoutes.push(route);
                         }

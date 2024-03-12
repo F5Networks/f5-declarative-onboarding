@@ -390,6 +390,20 @@ module.exports = {
     },
 
     /**
+     * Removes the RouteDomain ID from the IP address
+     *
+     * @param {String} address - IP address along with RouteDomain ID and optional CIDR.
+     *
+     * @returns {String} - The IP address without the RouteDomain ID and optional CIDR.
+     */
+    stripExistingRouteDomainID(address) {
+        if (typeof address === 'string' && address.indexOf('%') > 0) {
+            return address.replace(/%\d+/, '');
+        }
+        return address;
+    },
+
+    /**
      * Checks if hostname exists
      * @param {BigIp} bigIp - BigIp object
      * @param {String} address - URL address

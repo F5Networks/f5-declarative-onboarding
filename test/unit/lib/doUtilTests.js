@@ -1067,4 +1067,12 @@ describe('doUtil', () => {
             return assert.isRejected(doUtil.getPrimaryAdminUser(), 'Unable to get primary admin user');
         });
     });
+
+    describe('stripExistingRouteDomain', () => {
+        it('should strip route domain from an IP address', () => {
+            const ips = ['10.1.1.1%1', '192.168.0.1%255', '10.9.8.7%10/24', '172.16.34.3%10:80', '10.9.38.4', '2001:0db8::0001', '2001:db8:a0b:12f0::1%0'];
+            const expectedIPs = ['10.1.1.1', '192.168.0.1', '10.9.8.7/24', '172.16.34.3:80', '10.9.38.4', '2001:0db8::0001', '2001:db8:a0b:12f0::1'];
+            assert.deepStrictEqual(ips.map(doUtil.stripExistingRouteDomainID), expectedIPs);
+        });
+    });
 });
