@@ -199,7 +199,7 @@ Configuring BGP Routing in a declaration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. sidebar:: :fonticon:`fa fa-info-circle fa-lg` Version Notice:
 
-   Support for BGP routing is available in BIG-IP DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in BIG-IP DO 1.24 and later.
+   Support for BGP routing is available in BIG-IP DO v1.20 and later.  BGP Routing is an experimental (Early Access) feature on the BIG-IP. |br| Support for the **ebgpMultihop** property is available in BIG-IP DO 1.24 and later. |br| Support for the asOverrideEnabled property is available under neighbors in BIG-IP DO 1.42.0 and later.
    
 This example shows how you can configure Border Gateway Protocol (BGP) routing in a BIG-IP Declarative Onboarding declaration.
 
