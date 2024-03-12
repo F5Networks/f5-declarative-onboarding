@@ -12,8 +12,8 @@ Document Revision History
         - Date
 
       * - 1.43
-      * - Updated the documentation for Declarative Onboarding v1.43.0.  This release contains the following changes: |br| * Updates packages to the latest available versions
-      * - 3-11-24
+        - Updated the documentation for Declarative Onboarding v1.43.0.  This release contains the following changes: |br| * Updates packages to the latest available versions
+        - 3-11-24
 
       * - 1.42
         - Updated the documentation for Declarative Onboarding v1.42.0.  This release contains the following changes: |br| * Ability to set WAF Settings: ecard_max_http_req_uri_len, ignore_cookies_msg_key, and cookie_secure_attr |br| * Added support for RoutingBGP neighbors addressFamilies asOverrideEnabled property, `GitHub Issue 368 <https://github.com/F5Networks/f5-declarative-onboarding/issues/368>`_ |br| |br| Issues Resolved: |br| * Creating a RoutingBGP fails if a RouteMap is not in the declaration, `GitHub Issue 363 <https://github.com/F5Networks/f5-declarative-onboarding/issues/363>`_ and `GitHub Issue 329 <https://github.com/F5Networks/f5-declarative-onboarding/issues/329>`_
