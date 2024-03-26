@@ -514,4 +514,40 @@ describe('state', () => {
         state.setRequestOptions(taskId, reqOpts);
         assert.deepStrictEqual(state.getRequestOptions(taskId), reqOpts);
     });
+
+    it('should retrieve rollback info', () => {
+        const state = new State();
+        const taskId = state.addTask();
+
+        state.setRollbackInfo(taskId, { rollback: 'rollbackInfo' });
+        assert.deepStrictEqual(state.getRollbackInfo(taskId), { rollback: 'rollbackInfo' });
+    });
+
+    it('should error if task not found when getting rollback info', () => {
+        const state = new State();
+        assert.throws(() => state.getRollbackInfo('invalidId'), /taskId does not exist/);
+    });
+
+    it('should error if task not found when setting rollback info', () => {
+        const state = new State();
+        assert.throws(() => state.setRollbackInfo('invalidId', {}), /taskId does not exist/);
+    });
+
+    it('should retrieve trace diff', () => {
+        const state = new State();
+        const taskId = state.addTask();
+
+        state.setTraceDiff(taskId, { diff: 'traceDiff' });
+        assert.deepStrictEqual(state.getTraceDiff(taskId), { diff: 'traceDiff' });
+    });
+
+    it('should error if task not found when getting trace diff', () => {
+        const state = new State();
+        assert.throws(() => state.getTraceDiff('invalidId'), /taskId does not exist/);
+    });
+
+    it('should error if task not found when setting rollback info', () => {
+        const state = new State();
+        assert.throws(() => state.setTraceDiff('invalidId', {}), /taskId does not exist/);
+    });
 });
