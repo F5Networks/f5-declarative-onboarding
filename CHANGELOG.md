@@ -8,7 +8,6 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Changed
 - Updated packages to latest available versions
-
 ### Removed
 
 ## 1.43.0
