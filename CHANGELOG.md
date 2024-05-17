@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 ### Fixed
 
 ### Changed
+- Updated packages to latest available versions
 
 ### Removed
 
