@@ -11,8 +11,12 @@ Document Revision History
         - Description
         - Date
 
+      * - 1.44
+        - Updated the documentation for Declarative Onboarding v1.44.0.  This release contains the following changes: |br| * Updated packages to the latest available versions.
+        - 6-04-24
+
       * - 1.43
-        - Updated the documentation for Declarative Onboarding v1.43.0.  This release contains the following changes: |br| * Updates packages to the latest available versions
+        - Updated the documentation for Declarative Onboarding v1.43.0.  This release contains the following changes: |br| * Updated packages to the latest available versions.
         - 3-11-24
 
       * - 1.42
