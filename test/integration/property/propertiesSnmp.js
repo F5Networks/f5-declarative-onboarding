@@ -433,5 +433,162 @@ describe('Snmp', function testSnmp() {
 
             return assertSnmpTrapDestinationClass(properties, options);
         });
+        it('Test snmpTrapDestination aes256,sha256 Properties 14.0+', function snmpTrapDestinationTest() {
+            if (cloudUtil.versionCompare(getBigIpVersion(), '14.0') < 0) {
+                this.skip();
+            }
+
+            const properties = [
+                {
+                    name: 'version',
+                    inputValue: [undefined, '3', undefined],
+                    expectedValue: ['2c', '3', '2c']
+                },
+                {
+                    name: 'destination',
+                    inputValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100'],
+                    expectedValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100']
+                },
+                {
+                    name: 'port',
+                    inputValue: [80, 8443, 80],
+                    expectedValue: [80, 8443, 80]
+                },
+                {
+                    name: 'network',
+                    inputValue: [undefined, 'other', undefined],
+                    expectedValue: ['mgmt', 'other', 'mgmt']
+                },
+                {
+                    name: 'community',
+                    inputValue: ['public', undefined, 'public'],
+                    expectedValue: ['public', undefined, 'public']
+                },
+                {
+                    name: 'securityName',
+                    inputValue: [undefined, 'someSnmpUser', undefined],
+                    expectedValue: [undefined, 'someSnmpUser', undefined]
+                },
+                {
+                    name: 'engineId',
+                    inputValue: [undefined, '0x80001f8880c6b6067fdacfb558', undefined],
+                    expectedValue: [undefined, '0x80001f8880c6b6067fdacfb558', undefined]
+                },
+                {
+                    name: 'authentication',
+                    inputValue: [undefined, { protocol: 'sha256', password: 'pass1W0rd!' }, undefined],
+                    expectedValue: [
+                        { authProtocol: undefined, authPasswordExists: false },
+                        { authProtocol: 'sha256', authPasswordExists: true },
+                        { authProtocol: undefined, authPasswordExists: false }
+                    ],
+                    extractFunction: (o) => {
+                        const pEncrypted = o.authPasswordEncrypted;
+                        return {
+                            authProtocol: o.authProtocol,
+                            authPasswordExists: typeof pEncrypted === 'string'
+                            && pEncrypted.length > 0
+                        };
+                    }
+                },
+                {
+                    name: 'privacy',
+                    inputValue: [undefined, { protocol: 'aes256', password: 'P@ssW0rd' }, undefined],
+                    expectedValue: [
+                        { privacyProtocol: undefined, privacyPasswordExists: false },
+                        { privacyProtocol: 'aes256', privacyPasswordExists: true },
+                        { privacyProtocol: undefined, privacyPasswordExists: false }
+                    ],
+                    extractFunction: (o) => {
+                        const pEncrypted = o.privacyPasswordEncrypted;
+                        return {
+                            privacyProtocol: o.privacyProtocol,
+                            privacyPasswordExists: typeof pEncrypted === 'string'
+                            && pEncrypted.length > 0
+                        };
+                    }
+                }
+            ];
+
+            return assertSnmpTrapDestinationClass(properties, options);
+        });
+
+        /*
+         * On 13.1, passwords cannot be cleared once set. This means we cannot test
+         * transitioning from a password to no password, from version 3 to either 1 or 2c,
+         * from security name to no security name, or from no community to community.
+         */
+        it('Test snmpTrapDestination aes256,sha256 Properties 13.1', function snmpTrapDestinationTest() {
+            if (cloudUtil.versionCompare(getBigIpVersion(), '14.0') >= 0) {
+                this.skip();
+            }
+
+            const properties = [
+                {
+                    name: 'version',
+                    inputValue: [undefined, '3'],
+                    expectedValue: ['2c', '3']
+                },
+                {
+                    name: 'destination',
+                    inputValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100'],
+                    expectedValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100']
+                },
+                {
+                    name: 'port',
+                    inputValue: [80, 8443, 80],
+                    expectedValue: [80, 8443, 80]
+                },
+                {
+                    name: 'network',
+                    inputValue: [undefined, 'other', undefined],
+                    expectedValue: ['mgmt', 'other', 'mgmt']
+                },
+                {
+                    name: 'community',
+                    inputValue: ['public', undefined],
+                    expectedValue: ['public', undefined]
+                },
+                {
+                    name: 'securityName',
+                    inputValue: [undefined, 'someSnmpUser'],
+                    expectedValue: [undefined, 'someSnmpUser']
+                },
+                {
+                    name: 'authentication',
+                    inputValue: [undefined, { protocol: 'sha256', password: 'pass1W0rd!' }],
+                    expectedValue: [
+                        { authProtocol: undefined, authPasswordExists: false },
+                        { authProtocol: 'sha256', authPasswordExists: true }
+                    ],
+                    extractFunction: (o) => {
+                        const pEncrypted = o.authPasswordEncrypted;
+                        return {
+                            authProtocol: o.authProtocol,
+                            authPasswordExists: typeof pEncrypted === 'string'
+                            && pEncrypted.length > 0
+                        };
+                    }
+                },
+                {
+                    name: 'privacy',
+                    inputValue: [undefined, { protocol: 'aes256', password: 'P@ssW0rd' }],
+                    expectedValue: [
+                        { privacyProtocol: undefined, privacyPasswordExists: false },
+                        { privacyProtocol: 'aes256', privacyPasswordExists: true }
+                    ],
+                    extractFunction: (o) => {
+                        const pEncrypted = o.privacyPasswordEncrypted;
+                        return {
+                            privacyProtocol: o.privacyProtocol,
+                            privacyPasswordExists: typeof pEncrypted === 'string'
+                            && pEncrypted.length > 0
+                        };
+                    }
+                }
+            ];
+
+            return assertSnmpTrapDestinationClass(properties, options);
+        });
     });
 });
