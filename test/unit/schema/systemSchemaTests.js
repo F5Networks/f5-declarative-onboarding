@@ -698,7 +698,25 @@ describe('system.schema.json', () => {
                     },
                     "engineId": "0x80001f8880c6b6067fdacfb558"
                 };
+                const data256 = {
+                    "class": "SnmpTrapDestination",
+                    "version": "3",
+                    "destination": "10.0.10.1",
+                    "port": 80,
+                    "network": "other",
+                    "securityName": "someSnmpUser256",
+                    "authentication": {
+                        "protocol": "sha256",
+                        "password": "P@ssW0rd"
+                    },
+                    "privacy": {
+                        "protocol": "aes256",
+                        "password": "P@ssW0rd"
+                    },
+                    "engineId": "0x80001f8880c6b6067fdacfb558"
+                };
                 assert.ok(validate(data), getErrorString(validate));
+                assert.ok(validate(data256), getErrorString(validate));
             });
 
             it('should validate minimal SnmpTrapDestination', () => {

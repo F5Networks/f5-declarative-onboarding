@@ -1000,6 +1000,20 @@ describe('inspectHandler', () => {
                     engineId: '0x80001f8880c6b6067fdacfb558'
                 },
                 {
+                    name: '/Common/other256ProtocolSnmpTrapDestination',
+                    version: '3',
+                    host: '192.0.2.16',
+                    port: 8080,
+                    authPassword: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                    authProtocol: 'sha256',
+                    privacyPassword: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                    privacyProtocol: 'aes256',
+                    network: 'other',
+                    community: 'communityName',
+                    securityName: 'someSnmpUser256',
+                    engineId: '0x80001f8880c6b6067fdacfb558'
+                },
+                {
                     name: '/Common/mgmtTrapDestination',
                     version: '3',
                     host: '192.0.2.16',
@@ -2163,6 +2177,24 @@ describe('inspectHandler', () => {
                             privacy: {
                                 password: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
                                 protocol: 'aes'
+                            },
+                            engineId: '0x80001f8880c6b6067fdacfb558'
+                        },
+                        other256ProtocolSnmpTrapDestination: {
+                            class: 'SnmpTrapDestination',
+                            version: '3',
+                            destination: '192.0.2.16',
+                            community: 'communityName',
+                            port: 8080,
+                            network: 'other',
+                            securityName: 'someSnmpUser256',
+                            authentication: {
+                                password: '$M$4H$PXdpZO3Xd65xnMkC+F+mdQ==',
+                                protocol: 'sha256'
+                            },
+                            privacy: {
+                                password: '$M$4H$PXdpZO5Ye44yzBkC+F+seH==',
+                                protocol: 'aes256'
                             },
                             engineId: '0x80001f8880c6b6067fdacfb558'
                         },

@@ -528,7 +528,7 @@
                                 "protocol": {
                                     "description": "Authentication protocol.",
                                     "type": "string",
-                                    "enum": ["sha", "md5"]
+                                    "enum": ["sha", "md5", "sha256"]
                                 },
                                 "password": {
                                     "description": "Specifies the password for the user.",
@@ -544,7 +544,7 @@
                                 "protocol": {
                                     "description": "Specifies the encryption protocol.",
                                     "type": "string",
-                                    "enum": ["aes", "des"]
+                                    "enum": ["aes", "des", "aes256"]
                                 },
                                 "password": {
                                     "description": "Specifies the password for the user.",
