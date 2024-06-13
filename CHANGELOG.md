@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.45.0
 ### Added
+- Add Support for sha256 and aes256 in SnmpTrapDestination_authentication and SnmpTrapDestination_privacy
 
 ### Fixed
 
