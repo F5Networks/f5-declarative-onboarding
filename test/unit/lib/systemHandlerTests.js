@@ -2805,7 +2805,7 @@ describe('systemHandler', () => {
             });
     });
 
-    it('should handle SnmpTrapDestination 256Protocol', () => {
+    it('should handle SnmpTrapDestination sha256,aes256 Protocols', () => {
         const declaration = {
             Common: {
                 SnmpTrapDestination: {
