@@ -348,6 +348,10 @@ function handleDeviceCertificate() {
 
         if (certificateName) {
             const certificateDeclaration = this.declaration.Common.DeviceCertificate[certificateName];
+            if (certificateDeclaration.skipDeviceCertificates) {
+                return Promise.resolve();
+            }
+
             if (certificateDeclaration.certificate) {
                 let needsWrite = false;
                 newCertificate = certificateDeclaration.certificate;

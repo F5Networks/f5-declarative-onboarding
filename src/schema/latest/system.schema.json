@@ -24,6 +24,11 @@
                                 "description": "Specifies whether or not to update the device trust certificates with the new device certificate.",
                                 "type": "boolean",
                                 "default": false
+                            },
+                            "skipDeviceCertificates": {
+                                "description": "Specifies whether or not to compare certificate in the declaration against the certificates in the directories.",
+                                "type": "boolean",
+                                "default": false
                             }
                         }
                     },

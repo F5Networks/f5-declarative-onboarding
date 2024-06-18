@@ -1,0 +1,18 @@
+{
+    "schemaVersion": "1.15.0",
+    "class": "Device",
+    "Common": {
+        "class": "Tenant",
+        "hostname": "bigip.example.com",
+        "deviceCertificate": {
+            "class": "DeviceCertificate",
+            "skipDeviceCertificates": true,
+            "certificate": {
+                "base64": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkY1IEZBS0UgQ0VSVElGSUNBVEUKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ=="
+            },
+            "privateKey": {
+                "base64": "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpGNSBGQUtFIFBSSVZBVEUgS0VZCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0t"
+            }
+        }
+    }
+}

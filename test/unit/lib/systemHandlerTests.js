@@ -286,6 +286,31 @@ describe('systemHandler', () => {
                 });
         });
 
+        it('should not update rebootRequired if skipDeviceCertificates is set to true', () => {
+            const declaration = {
+                Common: {
+                    DeviceCertificate: {
+                        myCertificate: {
+                            skipDeviceCertificates: true
+                        }
+                    }
+                }
+            };
+
+            const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+            return systemHandler.process()
+                .then((status) => {
+                    assert.strictEqual(certWritten, '');
+                    assert.strictEqual(keyWritten, '');
+                    assert.strictEqual(filesCopied.length, 4);
+                    assert.strictEqual(status.rebootRequired, false);
+                    assert.strictEqual(
+                        status.rollbackInfo.systemHandler.deviceCertificate,
+                        undefined
+                    );
+                });
+        });
+
         it('should not set rebootRequired if there are no changes', () => {
             const declaration = {
                 Common: {
