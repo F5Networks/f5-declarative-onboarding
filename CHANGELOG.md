@@ -1,6 +1,15 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.46.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.45.0
 ### Added
 - AUTOTOOL-4326: Add Support for sha256 and aes256 in SnmpTrapDestination_authentication and SnmpTrapDestination_privacy

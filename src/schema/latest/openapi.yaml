@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: F5 BIG-IP Declarative Onboarding
   description: This reference describes the BIG-IP DO API and available endpoints. For more details, see https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/using-do.html.
-  version: 1.45.0
+  version: 1.46.0
   contact:
     name: BIG-IP Declarative Onboarding
     email: solutionsfeedback@f5.com
