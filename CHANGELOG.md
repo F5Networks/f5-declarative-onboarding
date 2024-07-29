@@ -13,9 +13,10 @@ Changes to this project are documented in this file. More detail and links can b
 ## 1.45.0
 ### Added
 - AUTOTOOL-4326: Add Support for sha256 and aes256 in SnmpTrapDestination_authentication and SnmpTrapDestination_privacy
-- AUTOTOOL-4381: Feature to prevent DO reverting the certificate to original when omitted [Example](https://github.com/F5Networks/f5-appsvcs-extension/blob/main/examples/skipDeviceCertificates.json)
+- Updated packages to the latest available versions
 
 ### Fixed
+- AUTOTOOL-4381: Feature to prevent DO reverting the certificate to original when omitted [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/skipDeviceCertificates.json)
 
 ### Changed
 - Updated packages to latest available versions
