@@ -2893,7 +2893,8 @@ describe('configManager', () => {
                     synchronization: 'yes',
                     synchronizationGroupName: 'syncGroup',
                     synchronizationTimeTolerance: 123,
-                    synchronizationTimeout: 100
+                    synchronizationTimeout: 100,
+                    synchronizeZoneFiles: 'yes'
                 };
 
                 const configManager = new ConfigManager(configItems, bigIpMock, state);
@@ -2906,7 +2907,8 @@ describe('configManager', () => {
                                     synchronization: 'yes',
                                     synchronizationGroupName: 'syncGroup',
                                     synchronizationTimeTolerance: 123,
-                                    synchronizationTimeout: 100
+                                    synchronizationTimeout: 100,
+                                    synchronizeZoneFiles: 'yes'
                                 }
                             }
                         );

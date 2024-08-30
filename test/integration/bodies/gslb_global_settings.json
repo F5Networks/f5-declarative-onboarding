@@ -1,0 +1,183 @@
+{
+    "schemaVersion": "1.46.0",
+    "class": "Device",
+    "async": true,
+    "Common": {
+        "class": "Tenant",
+        "hostname": "f5.example.com",
+        "myProvisioning": {
+            "class": "Provision",
+            "ltm": "nominal",
+            "gtm": "nominal"
+        },
+        "myGSLBGlobals": {
+            "class": "GSLBGlobals",
+            "general": {
+                "synchronizationEnabled": true,
+                "synchronizationGroupName": "newGroup",
+                "synchronizationTimeTolerance": 123,
+                "synchronizationTimeout": 12345,
+                "synchronizeZoneFiles": true
+            }
+        },
+        "myDataCenter": {
+            "class": "GSLBDataCenter",
+            "remark": "GSLB DataCenter description",
+            "enabled": true,
+            "contact": "dataCenterContact",
+            "location": "dataCenterLocation",
+            "proberFallback": "outside-datacenter",
+            "proberPreferred": "inside-datacenter"
+        },
+        "myGSLBServer": {
+            "class": "GSLBServer",
+            "label": "Example of all GSLB server properties",
+            "remark": "GSLB server description",
+            "devices": [
+                {
+                    "address": "10.10.10.10",
+                    "addressTranslation": "192.0.2.12",
+                    "remark": "GSLB server device description"
+                }
+            ],
+            "dataCenter": "/Common/myDataCenter",
+            "serverType": "bigip",
+            "enabled": false,
+            "proberPreferred": "pool",
+            "proberFallback": "any-available",
+            "proberPool": "/Common/myGSLBProberPool",
+            "bpsLimit": 10,
+            "bpsLimitEnabled": true,
+            "ppsLimit": 10,
+            "ppsLimitEnabled": true,
+            "connectionsLimit": 10,
+            "connectionsLimitEnabled": true,
+            "serviceCheckProbeEnabled": false,
+            "pathProbeEnabled": false,
+            "snmpProbeEnabled": false,
+            "virtualServerDiscoveryMode": "enabled",
+            "exposeRouteDomainsEnabled": true,
+            "cpuUsageLimit": 10,
+            "cpuUsageLimitEnabled": true,
+            "memoryLimit": 10,
+            "memoryLimitEnabled": true,
+            "monitors": [
+                "/Common/http",
+                "/Common/myGSLBMonitorHTTP",
+                "/Common/myGSLBMonitorHTTPS",
+                "/Common/myGSLBMonitorICMP",
+                "/Common/myGSLBMonitorTCP",
+                "/Common/myGSLBMonitorUDP"
+            ],
+            "virtualServers": [
+                {
+                    "address": "10.0.20.1",
+                    "port": 80
+                },
+                {
+                    "name": "virtualServer",
+                    "label": "Example of all GSLB server virtual server properties",
+                    "remark": "GSLB server virtual server description",
+                    "enabled": false,
+                    "address": "a989:1c34:009c:0000:0000:b099:c1c7:8bfe",
+                    "port": 8080,
+                    "addressTranslation": "1:0:1:0:0:0:0:0",
+                    "addressTranslationPort": 80,
+                    "monitors": [
+                        "/Common/tcp",
+                        "/Common/http"
+                    ]
+                }
+            ]
+        },
+        "myGSLBProberPool": {
+            "class": "GSLBProberPool",
+            "label": "Example of all GSLB prober pool properties",
+            "remark": "GSLB prober pool description",
+            "enabled": false,
+            "lbMode": "round-robin",
+            "members": [
+                {
+                    "server": "/Common/myGSLBServer",
+                    "label": "Example of all GSLB prober pool member properties",
+                    "remark": "GSLB prober pool member description",
+                    "enabled": false
+                }
+            ]
+        },
+        "myGSLBMonitorHTTP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "http",
+            "target": "192.0.2.10:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "HEAD / HTTP/1.0\\r\\n",
+            "receive": "HTTP"
+        },
+        "myGSLBMonitorHTTPS": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "https",
+            "target": "192.0.2.16:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "HEAD / HTTP/1.0\\r\\n",
+            "receive": "HTTP",
+            "ciphers": "DEFAULT",
+            "clientCertificate": "/Common/default.crt"
+        },
+        "myGSLBMonitorICMP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "gateway-icmp",
+            "target": "192.0.2.15:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "probeInterval": 1,
+            "probeAttempts": 3
+        },
+        "myGSLBMonitorTCP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "tcp",
+            "target": "192.0.2.12:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "example send",
+            "receive": "example receive"
+        },
+        "myGSLBMonitorUDP": {
+            "class": "GSLBMonitor",
+            "remark": "description",
+            "monitorType": "udp",
+            "target": "192.0.2.18:80",
+            "interval": 100,
+            "timeout": 1000,
+            "probeTimeout": 110,
+            "ignoreDownResponseEnabled": true,
+            "transparent": true,
+            "reverseEnabled": true,
+            "send": "default send string",
+            "receive": "udp receive",
+            "debugEnabled": true,
+            "probeInterval": 1,
+            "probeAttempts": 3
+        }
+    }
+}

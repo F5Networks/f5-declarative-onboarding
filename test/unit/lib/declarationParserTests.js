@@ -259,7 +259,8 @@ describe('declarationParser', () => {
                     general: {
                         class: 'GSLBGlobals',
                         synchronizationEnabled: true,
-                        synchronizationGroupName: 'my-sync-group-name'
+                        synchronizationGroupName: 'my-sync-group-name',
+                        synchronizeZoneFiles: true
                     }
                 }
             }
@@ -274,7 +275,8 @@ describe('declarationParser', () => {
             {
                 general: {
                     synchronization: 'yes',
-                    synchronizationGroupName: 'my-sync-group-name'
+                    synchronizationGroupName: 'my-sync-group-name',
+                    synchronizeZoneFiles: 'yes'
                 }
             }
         );

@@ -14,7 +14,8 @@
                 "synchronizationEnabled": true,
                 "synchronizationGroupName": "newGroup",
                 "synchronizationTimeTolerance": 123,
-                "synchronizationTimeout": 1234
+                "synchronizationTimeout": 1234,
+                "synchronizeZoneFiles": true
             }
         }
     }

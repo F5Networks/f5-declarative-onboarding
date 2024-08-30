@@ -809,7 +809,8 @@
             { "id": "synchronization", "truth": "yes", "falsehood": "no", "newId": "synchronizationEnabled" },
             { "id": "synchronizationGroupName" },
             { "id": "synchronizationTimeTolerance" },
-            { "id": "synchronizationTimeout" }
+            { "id": "synchronizationTimeout" },
+            { "id": "synchronizeZoneFiles", "truth": "yes", "falsehood": "no"}
         ],
         "nameless": true,
         "declaration": {

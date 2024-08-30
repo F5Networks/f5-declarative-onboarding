@@ -1252,7 +1252,8 @@ describe('inspectHandler', () => {
                 synchronization: 'no',
                 synchronizationGroupName: 'newGroup',
                 synchronizationTimeTolerance: 123,
-                synchronizationTimeout: 12345
+                synchronizationTimeout: 12345,
+                synchronizeZoneFiles: 'yes'
             },
             '/tm/gtm/datacenter': [
                 {
@@ -2457,7 +2458,8 @@ describe('inspectHandler', () => {
                                 synchronizationEnabled: false,
                                 synchronizationGroupName: 'newGroup',
                                 synchronizationTimeTolerance: 123,
-                                synchronizationTimeout: 12345
+                                synchronizationTimeout: 12345,
+                                synchronizeZoneFiles: true
                             }
                         },
                         currentDataCenter: {

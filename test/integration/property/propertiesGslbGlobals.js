@@ -56,6 +56,11 @@ describe('GSLB Globals', function testGslbGlobalsSuite() {
                 name: 'synchronizationTimeout',
                 inputValue: [undefined, 80, undefined],
                 expectedValue: [180, 80, 180]
+            },
+            {
+                name: 'synchronizeZoneFiles',
+                inputValue: [undefined, true, false, undefined],
+                expectedValue: [false, true, false, false]
             }
         ];
 

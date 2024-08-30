@@ -92,6 +92,11 @@
                     "minimum": 0,
                     "maximum": 4294967295,
                     "default": 180
+                },
+                "synchronizeZoneFiles": {
+                    "description": "Specifies that the system synchronizes Domain Name System (DNS) zone files among the synchronization group members. The default setting is false.",
+                    "type": "boolean",
+                    "default": false
                 }
             },
             "additionalProperties": false

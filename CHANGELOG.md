@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.46.0
 ### Added
+- AUTOTOOL-4400: Add Support for GSLB synchronize-zone-files [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/gslbGlobals.json)
 
 ### Fixed
 

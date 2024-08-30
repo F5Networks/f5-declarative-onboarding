@@ -915,7 +915,8 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                         synchronization: 'yes',
                         synchronizationGroupName: 'newGroup',
                         synchronizationTimeTolerance: 123,
-                        synchronizationTimeout: 12345
+                        synchronizationTimeout: 12345,
+                        synchronizeZoneFiles: 'no'
                     }
                 }
             ));
@@ -1110,6 +1111,48 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
                     debug: 'yes',
                     probeInterval: 1,
                     probeAttempts: 3
+                }
+            ));
+        });
+
+        describe('Test GSLB Global Settings', function testGslb() {
+            let body;
+
+            before(() => {
+                const bodyFile = `${BODIES}/gslb_global_settings.json`;
+                // send out gslb declaration
+                return common.readFile(bodyFile)
+                    .then(JSON.parse)
+                    .then((readBody) => {
+                        body = readBody;
+                    })
+                    .then(() => common.testRequest(
+                        body,
+                        `${common.hostname(bigIpAddress, constants.PORT)}${constants.DO_API}`,
+                        bigIpAuth,
+                        constants.HTTP_ACCEPTED,
+                        'POST'
+                    ))
+                    .then(() => common.testGetStatus(60, 15 * 1000, bigIpAddress, bigIpAuth, constants.HTTP_SUCCESS))
+                    .then((response) => {
+                        currentState = response.currentConfig.Common;
+                    })
+                    .catch((error) => logError(error, bigIpAddress, bigIpAuth));
+            });
+
+            after(() => common.testOriginalConfig(bigIpAddress, bigIpAuth)
+                .catch((error) => logError(error, bigIpAddress, bigIpAuth)));
+
+            it('should have updated GSLB global-settings with sync zone files property', () => assert.deepStrictEqual(
+                currentState.GSLBGlobals,
+                {
+                    general: {
+                        synchronization: 'yes',
+                        synchronizationGroupName: 'newGroup',
+                        synchronizationTimeTolerance: 123,
+                        synchronizationTimeout: 12345,
+                        synchronizeZoneFiles: 'yes'
+                    }
                 }
             ));
         });

@@ -102,7 +102,8 @@ function handleGSLBGlobals() {
             synchronization: gslbGeneral.synchronization,
             synchronizationGroupName: gslbGeneral.synchronizationGroupName,
             synchronizationTimeTolerance: gslbGeneral.synchronizationTimeTolerance,
-            synchronizationTimeout: gslbGeneral.synchronizationTimeout
+            synchronizationTimeout: gslbGeneral.synchronizationTimeout,
+            synchronizeZoneFiles: gslbGeneral.synchronizeZoneFiles
         };
         promises.push(this.bigIp.modify(
             PATHS.GSLBGeneral,

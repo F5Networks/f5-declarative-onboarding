@@ -58,7 +58,8 @@ describe('gslb.schema.json', () => {
                         synchronizationEnabled: true,
                         synchronizationGroupName: "newGroupName",
                         synchronizationTimeTolerance: 123,
-                        synchronizationTimeout: 100
+                        synchronizationTimeout: 100,
+                        synchronizeZoneFiles: false
                     }
                 };
                 assert.ok(validate(data), getErrorString(validate));

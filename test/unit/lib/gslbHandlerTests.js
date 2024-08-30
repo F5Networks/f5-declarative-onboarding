@@ -98,7 +98,8 @@ describe('gslbHandler', () => {
                             synchronization: 'yes',
                             synchronizationGroupName: 'newGroupName',
                             synchronizationTimeTolerance: 123,
-                            synchronizationTimeout: 100
+                            synchronizationTimeout: 100,
+                            synchronizeZoneFiles: 'no'
                         }
                     }
                 }
@@ -115,7 +116,8 @@ describe('gslbHandler', () => {
                             synchronization: 'yes',
                             synchronizationGroupName: 'newGroupName',
                             synchronizationTimeTolerance: 123,
-                            synchronizationTimeout: 100
+                            synchronizationTimeout: 100,
+                            synchronizeZoneFiles: 'no'
                         }
                     );
                 });
