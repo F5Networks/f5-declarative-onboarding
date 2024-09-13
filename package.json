@@ -19,7 +19,7 @@
   "author": "F5 Networks",
   "license": "Apache-2.0",
   "dependencies": {
-    "@f5devcentral/atg-shared-utilities": "^0.10.6",
+    "@f5devcentral/atg-shared-utilities": "^0.10.7",
     "@f5devcentral/f5-cloud-libs": "^4.29.0",
     "@f5devcentral/f5-teem": "^1.6.1",
     "ajv": "6.12.6",
@@ -28,23 +28,23 @@
     "uuid": "3.4.0"
   },
   "devDependencies": {
-    "@f5devcentral/atg-shared-utilities-dev": "^0.2.19",
+    "@f5devcentral/atg-shared-utilities-dev": "^0.2.20",
     "@f5devcentral/eslint-config-f5-atg": "^0.1.8",
-    "@stryker-mutator/core": "^8.2.6",
-    "@stryker-mutator/mocha-runner": "^8.2.6",
+    "@stryker-mutator/core": "^8.5.0",
+    "@stryker-mutator/mocha-runner": "^8.5.0",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.2",
     "colors": "^1.4.0",
     "eslint": "^8.56.0",
     "json-schema-ref-parser": "^9.0.9",
     "mkdirp": "^3.0.1",
-    "mocha": "^10.6.0",
+    "mocha": "^10.7.3",
     "mocha-multi-reporters": "^1.5.1",
     "nock": "10.0.0",
     "nyc": "^17.0.0",
     "sinon": "7.5.0",
     "winston": "^2.4.7",
-    "@redocly/cli": "^1.17.1"
+    "@redocly/cli": "^1.25.0"
   },
   "scripts": {
     "build": "scripts/build/build.sh",
