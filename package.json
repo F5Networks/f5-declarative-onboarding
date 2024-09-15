@@ -1,6 +1,6 @@
 {
   "name": "f5-declarative-onboarding",
-  "version": "1.46.0-4",
+  "version": "1.46.0-5",
   "description": "F5 Declarative Onboarding",
   "main": "index.js",
   "repository": {
