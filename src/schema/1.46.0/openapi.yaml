@@ -1,0 +1,590 @@
+openapi: 3.0.3
+info:
+  title: F5 BIG-IP Declarative Onboarding
+  description: This reference describes the BIG-IP DO API and available endpoints. For more details, see https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/using-do.html.
+  version: 1.46.0
+  contact:
+    name: BIG-IP Declarative Onboarding
+    email: solutionsfeedback@f5.com
+    url: 'https://github.com/F5Networks/f5-declarative-onboarding'
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: https://192.0.2.1:443/mgmt/shared/declarative-onboarding
+paths:
+  /:
+    get:
+      summary: Get status of configuration request
+      description: Retrieve the status of the most recently deployed configuration request.
+      operationId: getMostRecentTask
+      tags:
+        - Configuration
+      parameters:
+        - name: show
+          in: query
+          required: false
+          description: Retrieve original and current configuration.
+          schema:
+            type : string
+            enum:
+              - full
+        - name: statusCodes
+          in: query
+          required: false
+          description: |
+            Determines how BIG-IP DO returns HTTP status codes.
+              - *legacy*: Returns any errors as the HTTP status.
+              - *experimental*: Returns a 200 HTTP status code unless there is an actual error with the request. The result in the body of the response contains the status of the task.
+          schema:
+            type : string
+            enum:
+              - legacy
+              - experimental
+            default: legacy
+      responses:
+        200:
+          description: Configuration was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task'
+              examples:
+                success:
+                  value:
+                    $ref: '#/components/examples/task'
+                failure:
+                  value:
+                    $ref: '#/components/examples/errorConfig'
+        500:
+          $ref: '#/components/responses/500'
+    post:
+      summary: Apply BIG-IP DO configuration
+      description: Configure the device per the declaration.
+      operationId: postDeclaration
+      tags:
+        - Configuration
+      requestBody:
+        description: BIG-IP DO Declaration.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/device'
+      responses:
+        200:
+          description: Successful synchronous response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task'
+              example:
+                $ref: '#/components/examples/task'
+        202:
+          description: Successful asynchronous response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task'
+              example:
+                id: 'c098f4f1-d2a4-4c53-8728-7d1ce5567a4a'
+                result:
+                  class: Result,
+                  code: 202,
+                  status: RUNNING,
+                  dryRun: false,
+                  message: processing
+                declaration:
+                  class: Device
+                  schemaVersion: 1.0.0
+                  async: true
+                  Common:
+                    class: Tenant
+                    myLicense:
+                      class: License
+                      licenseType: regKey
+                      regKey: AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE
+                selfLink: 'https://localhost/mgmt/shared/appsvcs/task/c098f4f1-d2a4-4c53-8728-7d1ce5567a4'
+        422:
+          description: Error while applying config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task'
+              example:
+                $ref: '#/components/examples/errorConfig'
+        500:
+          $ref: '#/components/responses/500'
+  /config:
+    get:
+      summary: Return all original configurations
+      description: Retrieve the original configuration of all devices.
+      operationId: getAllConfigs
+      tags:
+        - Configuration
+      responses:
+        200:
+          description: Retrieval was successful.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/config'
+        500:
+          $ref: '#/components/responses/500'
+  /config/{machineId}:
+    get:
+      summary: Return original configuration by machine ID
+      description: Retrieve the original configuration of a device by machine ID.
+      operationId: getConfig
+      tags:
+        - Configuration
+      parameters:
+        - name: machineId
+          in: path
+          required: true
+          description: The machine ID that is returned by the <code>/shared/identified-devices/config/device-info</code> endpoint.
+          schema:
+            type : string
+            format: uuid
+      responses:
+        200:
+          description: Retrieval was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/config'
+        404:
+          $ref: '#/components/responses/404'
+        500:
+          $ref: '#/components/responses/500'
+    delete:
+      summary: Delete the stored original configuration by config ID
+      description: Delete the stored original configuration by config ID. This can be used in some cases when BIG-IP DO has gotten into an unusable state.
+      operationId: deleteConfig
+      tags:
+        - Configuration
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          description: The config ID that was returned by a GET to <code>/config</code>
+          schema:
+            type : string
+            format: uuid
+      responses:
+        200:
+          description: Delete was successful.
+          content:
+            application/json:
+              schema:
+                type: array
+              example:
+                []
+        404:
+          $ref: '#/components/responses/404'
+        500:
+          $ref: '#/components/responses/500'
+  /info:
+    get:
+      summary: /mgmt/shared/appsvcs/info
+      tags:
+        - Information
+      description: |
+        This returns version and release information for the instance of BIG-IP DO you are using.
+        It also shows current and minimum required versions of the BIG-IP DO schema.
+      responses:
+        200:
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    enum:
+                      - 0
+                  selfLink:
+                    type: string
+                    format: uri
+                  result:
+                    $ref: '#/components/schemas/result'
+                  version:
+                    type: string
+                    description: The version of BIG-IP DO.
+                  release:
+                    type: string
+                    description: The build number of the current version.
+                  schemaCurrent:
+                    type: string
+                    description: The maximum schema version supported.
+                  schemaMinimum:
+                    type: string
+                    description: The minimum schema version supported.
+              example:
+                id: 0
+                selfLink: https://localhost/mgmt/shared/declarative-onboarding/info,
+                result:
+                  class: Result,
+                  code: 200,
+                  status: OK,
+                  message: ""
+                  errors: []
+                version: 1.30.0
+                release: 2
+                schemaCurrent: 1.30.0
+                schemaMinimum: 1.0.0
+        500:
+          $ref: '#/components/responses/500'
+  /inspect:
+    get:
+      summary: Return current configuration
+      description: Retrieve the current configuration of a device.
+      operationId: getInspect
+      tags:
+        - Inspect
+      parameters:
+        - name: targetHost
+          in: query
+          required: false
+          description: The IP address or domain name of the host from which to retrieve the current configuration.
+          schema:
+            type : string
+            default: localhost
+        - name: targetPort
+          in: query
+          required: false
+          description: The port that is used with the targetHost to establish a connection to the device. By default, BIG-IP DO tries to establish a connection to the device using ports 443 and 8443.
+          schema:
+            type : integer
+            minimum: 0
+            maximum: 65535
+        - name: targetUsername
+          in: query
+          required: false
+          description: The username for the targetHost.
+          schema:
+            type : string
+            default: admin
+        - name: targetPassword
+          in: query
+          required: false
+          description: The password for the targetHost.
+          schema:
+            type : string
+            default: admin
+      responses:
+        200:
+          description: Retrieval was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inspect'
+        500:
+          $ref: '#/components/responses/500'
+  /task:
+    get:
+      summary: Return status of all configurations
+      description: Retrieve the status of all previously deployed configurations.
+      operationId: getAllTasks
+      tags:
+        - Task
+      responses:
+        200:
+          description: Retrieval was successful.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/task'
+                  example:
+                    $ref: '#/components/examples/task'
+
+        500:
+          $ref: '#/components/responses/500'
+  /task/{taskId}:
+    get:
+      summary: Return status of configuration by task ID
+      description: Retrieve the status of a previously deployed configuration by task ID.
+      operationId: getTask
+      tags:
+        - Task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: The task ID.
+          schema:
+            type : string
+            format: uuid
+      responses:
+        200:
+          description: Retrieval was successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task'
+              examples:
+                success:
+                  value:
+                    $ref: '#/components/examples/task'
+                failure:
+                  value:
+                    $ref: '#/components/examples/errorConfig'
+        404:
+          $ref: '#/components/responses/404'
+        500:
+          $ref: '#/components/responses/500'
+components:
+  schemas:
+    config:
+      title: Config
+      description: The original configuration of a device.
+      type: object
+      allOf:
+        - properties:
+            id:
+              type: string
+              format: uuid
+            selfLink:
+              type: string
+              format: uri
+            result:
+              $ref: '#/components/schemas/result'
+        - $ref: '#/components/schemas/configObject'
+    configObject:
+      title: Config Object
+      type: object
+      properties:
+        Common:
+          type: object
+          description: A collection of sub-objects that describe the configuration state of a device.
+          additionalProperties: true
+    errorConfig:
+      title: BIG-IP DO Processing Error
+      description: An error response caused by attempting to apply invalid config.
+      type: object
+      properties:
+        id:
+          description: Unique ID for task.
+          type: string
+          format: uuid
+        selfLink:
+          description: URI at which to fetch task on the device.
+          type: string
+          format: uri
+        code:
+          type: integer
+          enum:
+            - 422
+            - 500
+        status:
+          type: string
+          enum:
+            - ERROR
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+        result:
+          $ref: '#/components/schemas/result'
+        declaration:
+            $ref: '#/components/schemas/device'
+    errorProcessing:
+      title: Bad declaration Error
+      description: An error response caused by a bad parameter or bad declaration.
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        referer:
+          type: string
+          format: ipv4
+        restOperationId:
+          type: integer
+        kind:
+          type: string
+          enum:
+            - ':resterrorresponse'
+    device:
+      $ref: base.schema.json
+    inspect:
+      title: Inspect
+      description: The current configuration of a device.
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        selfLink:
+          type: string
+          format: uri
+        result:
+          $ref: '#/components/schemas/result'
+        declaration:
+          type: object
+          properties:
+            class:
+              type: string
+              enum:
+                - DO
+            declaration:
+              $ref: '#/components/schemas/device'
+    result:
+      title: Result
+      description: Standard result object in responses.
+      type: object
+      properties:
+        class:
+          type: string
+          enum:
+            - Result
+        code:
+          description: Status code.
+          type: integer
+        status:
+          description: Status string.
+          type: string
+          enum:
+            - OK
+            - ERROR
+            - ROLLING_BACK
+            - RUNNING
+            - REBOOTING
+            - REVOKING
+        message:
+          description: Overall result message.
+          type: string
+        errors:
+          description: Array of errors that occurred.
+          type: array
+          items:
+            type: string
+    task:
+      title: Task
+      description: The configuration status and associated declaration.
+      type: object
+      properties:
+        id:
+          description: Unique ID for task.
+          type: string
+          format: uuid
+        selfLink:
+          description: URI at which to fetch task on the device.
+          type: string
+          format: uri
+        message:
+          description: Overall result message.
+          type: string
+        errors:
+          description: Array of errors that occurred.
+          type: array
+          items:
+            type: string
+        result:
+          $ref: '#/components/schemas/result'
+        declaration:
+          $ref: '#/components/schemas/device'
+        currentConfig:
+          $ref: '#/components/schemas/configObject'
+        originalConfig:
+          $ref: '#/components/schemas/configObject'
+  examples:
+    errorConfig:
+      id: c098f4f1-d2a4-4c53-8728-7d1ce5567a4
+      selfLink: 'https://localhost/mgmt/shared/appsvcs/task/c098f4f1-d2a4-4c53-8728-7d1ce5567a4'
+      code: 422
+      status: ERROR
+      message: 'Error licensing: Invalid reg key'
+      errors:
+        - 'Invalid reg key'
+      result:
+        class: Result
+        code: 422
+        status: ERROR
+        dryRun: false
+        message: 'Error licensing: Invalid reg key'
+        errors:
+          - 'Invalid reg key'
+        declaration:
+          class: Device
+          schemaVersion: 1.0.0
+          async: true
+          Common:
+            class: Tenant
+            myLicense:
+              class: License
+              licenseType: regKey
+              regKey: AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE
+    errorNotFound:
+      code: 404,
+      message: 'java.net.ProtocolException: status:404, body:b1994382-8b2d-46c1-9e1b-44bd08925e7b does not exist'
+      referer: 172.18.6.16
+      restOperationId: 46740167
+      kind: :resterrorresponse
+    errorProcessing:
+      code: 400
+      message: 'java.net.ProtocolException: status:400, body:DELETE is only supported for the config endpoint'
+      referer: '192.168.0.1'
+      restOperationId: 12345678
+      kind: ':resterrorresponse'
+    task:
+      id: c098f4f1-d2a4-4c53-8728-7d1ce5567a4
+      selfLink: 'https://localhost/mgmt/shared/appsvcs/task/c098f4f1-d2a4-4c53-8728-7d1ce5567a4'
+      result:
+          class: Result
+          code: 200
+          status: OK
+          message: success
+      declaration:
+        class: Device
+        schemaVersion: 1.0.0
+        async: true
+        Common:
+          class: Tenant
+          myLicense:
+            class: License
+            licenseType: regKey
+            regKey: AAAAA-BBBBB-CCCCC-DDDDD-EEEEEEE
+  responses:
+    404:
+      description: ID not found.
+      content:
+        application/json:
+          schema:
+            title: 404
+            description: Not found.
+            type: object
+            properties:
+              code:
+                type: integer
+                enum:
+                  - 404
+              message:
+                type: string
+              referer:
+                type: string
+                format: ipv4
+              restOperationId:
+                type: integer
+              kind:
+                type: string
+          example:
+            $ref: '#/components/examples/errorNotFound'
+    500:
+      description: Something went wrong internally and a bug report should be filed&#58; https://github.com/F5Networks/f5-declarative-onboarding/issues/new/choose.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorProcessing'
+          example:
+            $ref: '#/components/examples/errorProcessing'

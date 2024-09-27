@@ -82,7 +82,7 @@
     ### Removed
     ```
   * git add, commit, and push.
-  * Submit an MR for these changes and wait for approval.
+  * Submit an MR for these changes and wait for approval. (Please don't merge this PR until release branch is merged and uploaded to Github)
 * Perform the "Actions after confirming GO for release".
 
 ### Actions after confirming GO for release:
@@ -100,7 +100,8 @@
     * `git push`
     * Via GUI, create an MR to merge this into `<main/develop>`
 * Using the GUI, create a tag on the `main` branch in the format `v<version>` (e.g. `v1.34.0`).
-* Artifacts are copied from main to GitHub and Docker Hub by release management.
+* Artifacts are copied from main to GitHub and Docker Hub by release management(atg-release).
+* Merge the PR associated with next development cycle branch created as part of above section to `develop`
 * Close your Jira task when the release is complete.
 
 ## Documentation Release process
