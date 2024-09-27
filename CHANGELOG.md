@@ -1,9 +1,19 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.47.0
+### Added
+
+### Fixed
+
+### Changed
+
+### Removed
+
 ## 1.46.0
 ### Added
 - AUTOTOOL-4400: Add Support for GSLB synchronize-zone-files [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/gslbGlobals.json)
+- Updated packages to the latest available versions
 
 ### Fixed
 

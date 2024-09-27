@@ -86,9 +86,11 @@
 * Perform the "Actions after confirming GO for release".
 
 ### Actions after confirming GO for release:
+* Clone release branch to <releaseBranch>-main eg: 1.46.0-main
+* Clone release branch to <releaseBranch>-docs eg: 1.46.0-docs
 * Using the GUI, create 2 MRs
-  * 1 MR to merge release branch to `main`.
-  * 1 MR to merge release branch to `develop`.
+  * 1 MR to merge release branch(<releaseBranch>-main) to `main`.
+  * 1 MR to merge release branch(<releaseBranch>) to `develop`.
   * Do not squash commits.
   * Do not delete branch.
   * You can self-approve and merge these MRs.
