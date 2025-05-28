@@ -30,6 +30,7 @@ variables:
     TF_HTTP_RETRY_MAX: 4
     TF_HTTP_RETRY_WAIT_MIN: 3
     DOCS_BUILD_DIR: "docs/_build/html"
+    SECRETS_ANALYZER_VERSION: '6.14.0'
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
