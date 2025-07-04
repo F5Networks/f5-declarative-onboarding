@@ -220,7 +220,8 @@
                             "FirewallAddressList",
                             "FirewallPortList",
                             "SecurityAnalytics",
-                            "SecurityWaf"
+                            "SecurityWaf",
+                            "DeviceDOS"
                         ]
                     }
                 },

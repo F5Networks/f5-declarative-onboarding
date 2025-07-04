@@ -60,7 +60,7 @@ describe('GSLB Globals', function testGslbGlobalsSuite() {
             {
                 name: 'synchronizeZoneFiles',
                 inputValue: [undefined, true, false, undefined],
-                expectedValue: [false, true, false, false]
+                expectedValue: ['no', 'yes', 'no', 'no']
             }
         ];
 

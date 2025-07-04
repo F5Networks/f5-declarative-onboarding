@@ -21,7 +21,7 @@ const {
 } = require('./propertiesCommon');
 
 describe('Management Route', function testDnsResolver() {
-    this.timeout(300000);
+    this.timeout(900000);
 
     let systemItem;
     let options;

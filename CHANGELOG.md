@@ -3,6 +3,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ## 1.47.0
 ### Added
+AUTOTOOL-4698: Add support for device DDOS [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/ddos.json)
 
 ### Fixed
 

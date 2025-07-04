@@ -73,6 +73,7 @@ module.exports = {
         RoutingBGP: '/tm/net/routing/bgp',
         RoutingPrefixList: '/tm/net/routing/prefix-list',
         SecurityAnalytics: '/tm/security/analytics/settings',
+        DeviceDOS: '/tm/security/dos/device-config',
         SelfIp: '/tm/net/self',
         SnmpAgent: '/tm/sys/snmp',
         SnmpCommunity: '/tm/sys/snmp/communities',

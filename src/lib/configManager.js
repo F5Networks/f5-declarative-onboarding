@@ -259,7 +259,6 @@ class ConfigManager {
                                 if (!shouldIgnore(item, this.configItems[index].ignore)
                                     && inPartitions(item, this.configItems[index].partitions)) {
                                     const schemaMerge = this.configItems[index].schemaMerge;
-
                                     if (schemaClass === 'Route'
                                         && item.partition === 'LOCAL_ONLY') {
                                         item.localOnly = true;
@@ -392,8 +391,30 @@ class ConfigManager {
                         patchedItem = removeUnusedKeys.call(
                             this,
                             currentItem,
-                            this.configItems[index].nameless
+                            schemaClass !== 'DeviceDOS' ? this.configItems[index].nameless : false
                         );
+
+                        if (schemaClass === 'DeviceDOS') {
+                            delete patchedItem.name;
+                            delete patchedItem.dynamicSignatures.detection;
+                            delete patchedItem.dynamicSignatures.mitigation;
+                            delete patchedItem.dynamicSignatures.scrubberAdvertisementPeriod;
+                            delete patchedItem.dynamicSignatures.scrubberEnable;
+                            delete patchedItem.dynamicSignatures.scrubberCategory;
+
+                            if (patchedItem.dynamicSignatures && patchedItem.dynamicSignatures.network) {
+                                if (patchedItem.dynamicSignatures.network.scrubberCategory) {
+                                    patchedItem.dynamicSignatures.network.scrubberCategory = patchedItem.dynamicSignatures.network.scrubberCategory.split('/').pop();
+                                } else {
+                                    patchedItem.dynamicSignatures.network.scrubberCategory = 'none';
+                                }
+                            }
+
+                            if (!patchedItem.logPublisher) {
+                                patchedItem.logPublisher = 'none';
+                            }
+                        }
+
                         patchedItem = mapProperties(
                             patchedItem,
                             this.configItems[index],

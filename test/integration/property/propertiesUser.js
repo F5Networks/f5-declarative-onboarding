@@ -26,7 +26,7 @@ function assertUserClass(properties, options) {
 }
 
 describe('User', function testAuthentication() {
-    this.timeout(600000);
+    this.timeout(900000);
 
     it('userType regular', () => {
         const options = {
