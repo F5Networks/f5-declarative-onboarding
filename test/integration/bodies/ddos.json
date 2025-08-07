@@ -2752,7 +2752,10 @@
                     "simulateAutoThreshold": "disabled",
                     "state": "disabled",
                     "suspicious": "false",
-                    "thresholdMode": "manual"
+                    "thresholdMode": "manual",
+                    "packetTypes": [
+                        "ipv4-icmp"
+                    ]
                 },
                 {
                     "name": "syn-and-fin-set",

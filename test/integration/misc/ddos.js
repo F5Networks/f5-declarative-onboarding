@@ -68,6 +68,8 @@ describe('Verify DDOS Vectors', function DeleteItems() {
                 assert.strictEqual(response.autoThresholdSensitivity, 90);
                 const vector = response.dosDeviceVector.find((item) => item.name === 'arp-flood');
                 assert.strictEqual(vector.blacklistDetectionSeconds, 61);
+                const vector2 = response.dosDeviceVector.find((item) => item.name === 'sweep');
+                assert.strictEqual(vector2.packetTypes[0], 'ipv4-icmp');
             })
             .then(() => {
                 logInfo.declarationIndex = 1;
@@ -94,6 +96,8 @@ describe('Verify DDOS Vectors', function DeleteItems() {
                 assert.strictEqual(response.autoThresholdSensitivity, 50);
                 const vector = response.dosDeviceVector.find((item) => item.name === 'arp-flood');
                 assert.strictEqual(vector.blacklistDetectionSeconds, 60);
+                const vector2 = response.dosDeviceVector.find((item) => item.name === 'sweep');
+                assert.strictEqual(vector2.packetTypes, undefined);
             })
             .catch((err) => {
                 assert.fail(err);

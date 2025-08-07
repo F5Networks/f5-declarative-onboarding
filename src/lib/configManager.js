@@ -413,6 +413,11 @@ class ConfigManager {
                             if (!patchedItem.logPublisher) {
                                 patchedItem.logPublisher = 'none';
                             }
+
+                            const sweepVectorIndex = patchedItem.dosDeviceVector.findIndex((vector) => vector.name === 'sweep');
+                            if (sweepVectorIndex !== -1 && !patchedItem.dosDeviceVector[sweepVectorIndex].packetTypes) {
+                                patchedItem.dosDeviceVector[sweepVectorIndex].packetTypes = [];
+                            }
                         }
 
                         patchedItem = mapProperties(
