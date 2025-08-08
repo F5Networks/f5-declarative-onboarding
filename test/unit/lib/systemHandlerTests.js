@@ -2799,6 +2799,44 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should handle SnmpTrapDestination with destination hostname', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {
+                    myDestination: {
+                        name: 'myDestination',
+                        version: '3',
+                        host: 'myhost.example.com',
+                        port: 80,
+                        network: 'other',
+                        authProtocol: 'sha',
+                        authPassword: 'P@ssW0rd1',
+                        privacyProtocol: 'aes',
+                        privacyPassword: 'P@ssW0rd2',
+                        engineId: '0x80001f8880c6b6067fdacfb558',
+                        securityName: 'someSnmpUser'
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'P@ssW0rd1');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'sha');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'P@ssW0rd2');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'aes');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, '0x80001f8880c6b6067fdacfb558');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].host, 'myhost.example.com');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, undefined);
+            });
+    });
+
     it('should handle SnmpTrapDestination with only auth', () => {
         const declaration = {
             Common: {

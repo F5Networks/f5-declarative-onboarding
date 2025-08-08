@@ -496,9 +496,10 @@
                     "destination": {
                         "description": "Specifies the address for the trap destination.",
                         "type": "string",
-                        "oneOf": [
+                        "anyOf": [
                             { "format": "ipv4" },
-                            { "format": "ipv6" }
+                            { "format": "ipv6" },
+                            { "format": "hostname" }
                         ]
                     },
                     "port": {
