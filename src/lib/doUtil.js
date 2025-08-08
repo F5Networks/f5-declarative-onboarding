@@ -718,5 +718,18 @@ module.exports = {
                 const adminUser = result.value.replace(/"/g, '');
                 return Promise.resolve(adminUser);
             });
+    },
+
+    /**
+     * Uses TMSH to set the disable root login
+     */
+    setDisableRootLogin(logger, value) {
+        cloudUtil.runTmshCommand(`modify sys db systemauth.disablerootlogin value ${value}`)
+            .then(() => {
+                logger.warning(`Successfully set the DisableRootLogin value ${value} on BIG-IP.`);
+            })
+            .catch((error) => {
+                logger.warning(`Unable to set DisableRootLogin. ${error.stack}`);
+            });
     }
 };

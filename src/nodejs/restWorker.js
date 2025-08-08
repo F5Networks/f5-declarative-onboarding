@@ -948,6 +948,13 @@ function rootAccountSetup(wrapper, updatedPassword, logger) {
         return Promise.resolve();
     }
 
+    if (typeof rootUser.disableRootLogin !== 'undefined') {
+        doUtil.setDisableRootLogin(logger, rootUser.disableRootLogin);
+        if (rootUser.disableRootLogin) {
+            return Promise.resolve();
+        }
+    }
+
     return new Promise((resolve, reject) => {
         getPort(wrapper)
             .then((port) => {

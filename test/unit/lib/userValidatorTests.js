@@ -52,6 +52,44 @@ describe('userValidator', () => {
                     assert.ok(validation.isValid);
                 });
         });
+
+        it('should validate valid root user with not disableRootLogin', () => {
+            const wrapper = {
+                targetHost: '192.0.2.10',
+                declaration: {
+                    Common: {
+                        root: {
+                            class: 'User',
+                            userType: 'root',
+                            disableRootLogin: false
+                        }
+                    }
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should validate valid root user with disableRootLogin', () => {
+            const wrapper = {
+                targetHost: '192.0.2.10',
+                declaration: {
+                    Common: {
+                        root: {
+                            class: 'User',
+                            userType: 'root',
+                            disableRootLogin: true
+                        }
+                    }
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
     });
 
     describe('invalid', () => {

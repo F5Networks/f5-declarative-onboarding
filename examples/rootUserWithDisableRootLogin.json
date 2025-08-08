@@ -1,0 +1,15 @@
+{
+    "schemaVersion": "1.0.0",
+    "class": "Device",
+    "async": true,
+    "webhook": "https://example.com/myHook",
+    "label": "user class",
+    "Common": {
+        "class": "Tenant",
+        "root": {
+            "class": "User",
+            "userType": "root",
+            "disableRootLogin": true
+        }
+    }
+}

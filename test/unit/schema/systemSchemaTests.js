@@ -860,9 +860,39 @@ describe('system.schema.json', () => {
                 };
                 assert.ok(validate(data), getErrorString(validate));
             });
+
+            it('should validate root user without disableRootLogin', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "root",
+                    "disableRootLogin": false,
+                    "oldPassword": "this_is_the_current_password",
+                    "newPassword": "this_is_my_new_root_password"
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
+
+            it('should validate root user with disableRootLogin', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "root",
+                    "disableRootLogin": true
+                };
+                assert.ok(validate(data), getErrorString(validate));
+            });
         });
 
         describe('invalid', () => {
+            it('should invalidate root user with disableRootLogin', () => {
+                const data = {
+                    "class": "User",
+                    "userType": "root",
+                    "disableRootLogin": "Not a valid value"
+                };
+                assert.strictEqual(validate(data), false, 'should be boolean');
+                assert(getErrorString().includes('"type": "boolean"'));
+            });
+
             it('should invalidate bad root password data', () => {
                 const data = {
                     "class": "User",

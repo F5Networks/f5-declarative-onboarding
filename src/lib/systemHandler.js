@@ -550,7 +550,10 @@ function handleUser() {
         const userNames = Object.keys(this.declaration.Common.User);
         userNames.forEach((username) => {
             const user = this.declaration.Common.User[username];
-            if (user.userType === 'root' && username === 'root') {
+            if (user.userType === 'root' && username === 'root' && user.disableRootLogin) {
+                doUtil.setDisableRootLogin(this.logger, true);
+            } else if (user.userType === 'root' && username === 'root' && !user.disableRootLogin) {
+                doUtil.setDisableRootLogin(this.logger, false);
                 promises.push(
                     this.bigIp.onboard.password(
                         'root',

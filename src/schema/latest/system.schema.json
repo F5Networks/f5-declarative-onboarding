@@ -585,7 +585,7 @@
                     "properties": { "userType": { "const": "root" } }
                 },
                 "then": {
-                    "required": ["class", "userType", "newPassword", "oldPassword"],
+                    "required": ["class", "userType"],
                     "properties": {
                         "class": {
                             "description": "Indicates that this property contains user configuration.",
@@ -624,9 +624,31 @@
                             "description": "Determines if a password change will be required on the first user login.",
                             "type": "boolean",
                             "default": true
+                        },
+                        "disableRootLogin": {
+                            "description": "To prevent root-level access to the system.",
+                            "type": "boolean",
+                            "default": false
                         }
                     },
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "if": {
+                        "required": ["disableRootLogin"],
+                        "properties": { "disableRootLogin": { "const": true } }
+                    },
+                    "then": {
+                        "dependencies": {
+                            "oldPassword": {
+                                "not": {}
+                            },
+                            "newPassword": {
+                                "not": {}
+                            }
+                        }
+                    },
+                    "else": {
+                        "required": ["newPassword", "oldPassword"]
+                    }
                 },
                 "else": {
                     "required": ["class", "userType"],

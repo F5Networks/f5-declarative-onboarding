@@ -40,6 +40,7 @@ describe('restWorker', () => {
     let httpUtilMock;
     let doUtilMock;
     let fetchesMock;
+    let cloudUtil;
 
     before(() => {
         cryptoUtilMock = require('../../../src/lib/cryptoUtil');
@@ -50,6 +51,7 @@ describe('restWorker', () => {
         httpUtilMock = require('../../../node_modules/@f5devcentral/f5-cloud-libs').httpUtil;
         doUtilMock = require('../../../src/lib/doUtil');
         fetchesMock = require('../../../src/lib/fetchHandler');
+        cloudUtil = require('../../../node_modules/@f5devcentral/f5-cloud-libs').util;
     });
 
     beforeEach(() => {
@@ -1873,6 +1875,116 @@ describe('restWorker', () => {
                 beforeEach(() => {
                     patchCalled = false;
                     SshUtilMock.prototype.executeCommand = () => Promise.resolve();
+                });
+
+                it('should disable the root login', (done) => {
+                    // TODO: This is failied when all tests are running,
+                    // Cause is race condition with SystemHandlerTests.
+                    const tmshCmds = [];
+                    sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+                        tmshCmds.push(tmshCmd);
+                        return Promise.resolve('');
+                    });
+
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '192.0.2.10',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'foofoo'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    oldPassword: 'default',
+                                    newPassword: 'barbar',
+                                    disableRootLogin: false
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        try {
+                            assert.strictEqual(restOperation.body.oldPassword, 'admin');
+                            assert.strictEqual(restOperation.body.password, 'foofoo');
+                        } catch (err) {
+                            done(err);
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPost = (restOperation) => {
+                        try {
+                            assert.strictEqual(tmshCmds.length, 1);
+                            assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value false');
+                            if (!restOperation.body.id) {
+                                assert.strictEqual(restOperation.body.oldPassword, 'foofoo');
+                                assert.strictEqual(restOperation.body.newPassword, 'foofoo');
+                                done();
+                            }
+                        } catch (err) {
+                            done(err);
+                        }
+                    };
+
+                    restWorker.onPost(restOperationMock);
+                });
+
+                it('should enable the root login', (done) => {
+                    // TODO: This is failied when all tests are running,
+                    // Cause is race condition with SystemHandlerTests.
+                    const tmshCmds = [];
+                    sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+                        tmshCmds.push(tmshCmd);
+                        return Promise.resolve('');
+                    });
+
+                    declaration = {
+                        class: 'DO',
+                        targetHost: '192.0.2.10',
+                        targetPort: 443,
+                        targetUsername: 'admin',
+                        targetPassphrase: 'admin',
+                        declaration: {
+                            Common: {
+                                admin: {
+                                    class: 'User',
+                                    password: 'foofoo'
+                                },
+                                root: {
+                                    class: 'User',
+                                    userType: 'root',
+                                    disableRootLogin: true
+                                }
+                            }
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPatch = (restOperation) => {
+                        try {
+                            assert.strictEqual(restOperation.body.oldPassword, 'admin');
+                            assert.strictEqual(restOperation.body.password, 'foofoo');
+                        } catch (err) {
+                            done(err);
+                        }
+                    };
+
+                    restWorker.restRequestSender.sendPost = () => {
+                        try {
+                            assert.strictEqual(tmshCmds.length, 1);
+                            assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value true');
+                            done();
+                        } catch (err) {
+                            done(err);
+                        }
+                    };
+
+                    restWorker.onPost(restOperationMock);
                 });
 
                 it('should not change root.oldPassword if targetPassphrase and admin password are same', (done) => {

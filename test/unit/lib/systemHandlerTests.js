@@ -1054,6 +1054,79 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should disable root login', () => {
+        // Stubs out the remote call to confirm the key is not added to the user
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves(superuserKey);
+        const tmshCmds = [];
+        sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+            tmshCmds.push(tmshCmd);
+            return Promise.resolve('');
+        });
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar',
+                        disableRootLogin: false,
+                        keys: [],
+                        forceInitialPasswordChange: true
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
+                assert.strictEqual(tmshCmds.length, 1);
+                assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value false');
+            });
+    });
+
+    it('should enable root login', () => {
+        const tmshCmds = [];
+        sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+            tmshCmds.push(tmshCmd);
+            return Promise.resolve('');
+        });
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        disableRootLogin: true
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process().then(() => {
+            assert.strictEqual(tmshCmds.length, 1);
+            assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value true');
+        });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         doUtilExecuteBashCommandStub.restore();

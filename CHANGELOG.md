@@ -7,6 +7,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-4494: ([GitHub 309](https://github.com/F5Networks/f5-declarative-onboarding/issues/309)) : Unable to set SNMP trap destination to FQDN
 
 ### Fixed
+- AUTOTOOL-4399: ([GitHub 378](https://github.com/F5Networks/f5-declarative-onboarding/issues/378)): Add key/value to uncheck 'Disable login' on the root account [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/rootUserWithDisableRootLogin.json)
 
 ### Changed
 
