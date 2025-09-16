@@ -68,8 +68,8 @@ function sendRequestToBigIq(reqOpts, body) {
         .then(() => requestUtil.send(reqOpts, body));
 }
 
-function waitForStatus(expectedStatus) {
-    console.log(`Waiting for ${expectedStatus}`);
+function waitForStatuses(expectedStatuses) {
+    console.log(`Waiting for ${expectedStatuses.join(' or ')}`);
     const checkStatus = () => {
         const reqOpts = {
             method: 'GET',
@@ -77,8 +77,8 @@ function waitForStatus(expectedStatus) {
         };
         return sendRequestToBigIq(reqOpts)
             .then((response) => {
-                if (response.status !== expectedStatus) {
-                    return Promise.reject(new Error(`current status: ${response.status}, expecting ${expectedStatus}`));
+                if (!expectedStatuses.includes(response.status)) {
+                    return Promise.reject(new Error(`current status: ${response.status}, expecting one of: ${expectedStatuses.join(', ')}`));
                 }
                 return Promise.resolve(response);
             });
@@ -114,8 +114,16 @@ function reactivateSystemLicense() {
             }
             return Promise.resolve();
         })
-        .then(() => waitForStatus('NEED_EULA_ACCEPT'))
+        .then(() => waitForStatuses(['NEED_EULA_ACCEPT', 'LICENSING_COMPLETE']))
         .then((response) => {
+            if (response.status !== 'NEED_EULA_ACCEPT') {
+                // if we are already licensed, nothing more to do
+                console.log('System license is already active');
+                return Promise.resolve(response);
+            }
+            console.log('Accepting EULA');
+
+            // accept EULA
             const reqOpts = {
                 method: 'POST',
                 path: '/mgmt/tm/shared/licensing/activation'
@@ -131,7 +139,7 @@ function reactivateSystemLicense() {
             };
             return sendRequestToBigIq(reqOpts, body);
         })
-        .then(() => waitForStatus('LICENSING_COMPLETE'))
+        .then(() => waitForStatuses(['LICENSING_COMPLETE']))
         .catch((err) => {
             console.log(`Error re-activating system license: ${err.message}`);
             throw err;
