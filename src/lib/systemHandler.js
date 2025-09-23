@@ -452,10 +452,9 @@ function handleDeviceCertificate() {
                 .then(() => Promise.all(writePromises))
                 .then(() => {
                     if (writePromises.length > 0) {
-                        // Really all we need to do is restart httpd but I can't find a way to do that
-                        // succesfully. Anything through iControl REST fails on the second restart.
-                        this.rebootRequired = true;
+                        return restartLicenseServices.call(this, certificateDeclaration.updateTrustCerts);
                     }
+                    return Promise.resolve();
                 });
         }
     }
@@ -1397,6 +1396,26 @@ function restartDhcp() {
         });
 }
 
+function restartLicenseServices(addOnServices) {
+    // As per the K6353
+    // If the iQuery result continues to display the old certificate,
+    // you may have to restart big3d on the remote system and/or gtmd on the local system.
+    // Note: Be aware that restarting big3d and/or gtmd causes the iQuery connection to be torn down and
+    // re-established and causes iQuery to fail to connect.
+    return Promise.resolve()
+        .then(() => {
+            // As per the ID1395349
+            // If you would like to clear the stale state, restart httpd via its systemd service unit twice
+            if (addOnServices) {
+                return doUtil.executeBashCommandIControl(this.bigIp, 'systemctl restart httpd && systemctl restart httpd && bigstart restart gtmd big3d');
+            }
+            return doUtil.executeBashCommandIControl(this.bigIp, 'systemctl restart httpd && systemctl restart httpd');
+        }).catch((error) => {
+            this.logger.fine(`Error while restating the License services ${JSON.stringify(error)}`);
+            return Promise.resolve();
+        });
+}
+
 /**
  * If copies of the original device cert and key do not exist, create them.
  * This is needed so we can restore them in the case that a declaration
@@ -1442,8 +1461,9 @@ function rollbackCertAndKey() {
     return Promise.all(copyPromises)
         .then(() => {
             if (copyPromises.length > 0) {
-                this.rebootRequired = true;
+                return restartLicenseServices.call(this, false);
             }
+            return Promise.resolve();
         });
 }
 
@@ -1478,10 +1498,9 @@ function restoreOriginalCertAndKey(certsAndKey) {
     return promiseUtil.series(restorePromises)
         .then(() => {
             if (rebootRequired) {
-                // Really all we need to do is restart httpd but I can't find a way to do that
-                // succesfully. Anything through iControl REST fails on the second restart.
-                this.rebootRequired = true;
+                return restartLicenseServices.call(this, false);
             }
+            return Promise.resolve();
         });
 }
 

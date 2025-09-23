@@ -261,7 +261,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
                     assert.strictEqual(filesCopied[6], '/config/big3d/client.crt');
                     assert.strictEqual(filesCopied[7], '/config/gtm/server.crt');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                     assert.deepEqual(
                         status.rollbackInfo.systemHandler.deviceCertificate.files,
                         [
@@ -356,7 +356,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[9], '/config/big3d/client.crt.DO.orig');
                     assert.strictEqual(filesCopied[10], '/config/gtm/server.crt');
                     assert.strictEqual(filesCopied[11], '/config/gtm/server.crt.DO.orig');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
 
@@ -403,7 +403,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key.DO.bak');
                     assert.strictEqual(filesCopied[6], '/config/big3d/client.crt.DO.bak');
                     assert.strictEqual(filesCopied[7], '/config/gtm/server.crt.DO.bak');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
 
@@ -475,7 +475,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[3], '/config/gtm/server.crt');
                     assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt');
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
     });
@@ -1249,7 +1249,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(userSent, 'root');
                 assert.strictEqual(newPasswordSent, 'bar');
                 assert.strictEqual(oldPasswordSent, 'foo');
-                assert.strictEqual(bashCmds.length, 16); // Should only be the 16 default commands
+                assert.strictEqual(bashCmds.length, 17); // Should only be the 17 default commands
             });
     });
 
@@ -1345,7 +1345,8 @@ describe('systemHandler', () => {
                     ]
                 );
                 assert.deepEqual(bodiesSent[2].shell, 'tmsh');
-                assert.strictEqual(bashCmds[16],
+                assert.strictEqual(bashCmds[16], 'systemctl restart httpd && systemctl restart httpd');
+                assert.strictEqual(bashCmds[17],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,
                         `echo '${testKey}' > `,
@@ -1354,7 +1355,7 @@ describe('systemHandler', () => {
                         `chmod -R 700 ${sshPaths[0]}; `,
                         `chmod 600 ${sshPaths[0]}/authorized_keys`
                     ].join(''));
-                assert.strictEqual(bashCmds[17],
+                assert.strictEqual(bashCmds[18],
                     [
                         ` mkdir -p ${sshPaths[1]}; `,
                         'echo \'\' > ',

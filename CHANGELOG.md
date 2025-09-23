@@ -8,6 +8,7 @@ Changes to this project are documented in this file. More detail and links can b
 
 ### Fixed
 - AUTOTOOL-4399: ([GitHub 378](https://github.com/F5Networks/f5-declarative-onboarding/issues/378)): Add key/value to uncheck 'Disable login' on the root account [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/rootUserWithDisableRootLogin.json)
+- AUTOTOOL-3579: ([GitHub 332](https://github.com/F5Networks/f5-declarative-onboarding/issues/332)): DO reboots device and resets hostname when simple declaration with DeviceCertificate is used
 
 ### Changed
 
