@@ -403,7 +403,7 @@ describe('inspectHandler', () => {
                             schemaVersion: SCHEMA_VERSION,
                             Common: {
                                 class: 'Tenant',
-                                0: {
+                                RouteDomain_0: {
                                     class: 'RouteDomain'
                                 }
                             }

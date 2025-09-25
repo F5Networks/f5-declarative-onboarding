@@ -910,6 +910,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -1089,6 +1093,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "additionalProperties": false
@@ -1282,6 +1290,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "additionalProperties": false
@@ -1501,6 +1513,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "additionalProperties": false
@@ -1688,6 +1704,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "additionalProperties": false
@@ -1874,6 +1894,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2063,6 +2087,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2261,6 +2289,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2439,6 +2471,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2626,6 +2662,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2819,6 +2859,10 @@
                         "none"
                     ],
                     "default": "none"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -2994,6 +3038,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -3202,6 +3250,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -3390,6 +3442,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -3558,6 +3614,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -3786,6 +3846,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -3954,6 +4018,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -4162,6 +4230,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -4390,6 +4462,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -4598,6 +4674,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -4796,6 +4876,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -4994,6 +5078,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -5182,6 +5270,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -5380,6 +5472,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -5670,6 +5766,10 @@
                         ]
                     }, 
                     "default": []
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -5838,6 +5938,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -6046,6 +6150,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -6254,6 +6362,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -6452,6 +6564,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -6650,6 +6766,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -6838,6 +6958,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
@@ -7036,6 +7160,10 @@
                 "thresholdMode": {
                     "type": "string",
                     "default": "manual"
+                },
+                "tscookie": {
+                    "type": "string",
+                    "default": "disabled"
                 }
             },
             "required": [
