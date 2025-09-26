@@ -248,7 +248,7 @@ create_docs:
 .deploy_common: &deploy_common
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-      - do-test-docker-executor
+      - cm-official-docker-executor
     stage: deploy
     timeout: 2 hours
     script:
@@ -288,6 +288,8 @@ deploy_for_this_project:
     rules:
       - if: '$RUN_INTEGRATION_TEST =~ /true/i'
     variables:
+      TF_LOG: "DEBUG"  # Add this for detailed Terraform logs
+      TF_LOG_PATH: "/tmp/terraform.log"  # Optional: save logs to file
       TF_ROOT: '$TF_DIRECTORY/plans/openstack'
       TF_VAR_bigip_image: "$BIGIP_IMAGE"
       TF_VAR_nic_count: "$NIC_COUNT"
@@ -312,6 +314,8 @@ deploy_for_other_project:
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     variables:
       TF_ROOT: "$TF_DIRECTORY/plans/openstack"
+      TF_LOG: "DEBUG"  # Add this for detailed Terraform logs
+      TF_LOG_PATH: "/tmp/terraform.log"  # Optional: save logs to file
       TF_VAR_bigip_image: "$BIGIP_IMAGE"
       TF_VAR_nic_count: "$NIC_COUNT"
     before_script:
@@ -335,7 +339,7 @@ deploy_for_other_project:
 integration-test:
     image: $DOCKER_URL/node:16
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     rules:
       - if: '$RUN_INTEGRATION_TEST =~ /true/i'
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
@@ -376,7 +380,7 @@ integration-test:
 .teardown_common: &teardown_common
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-      - do-test-docker-executor
+      - cm-official-docker-executor
     stage: teardown
     before_script:
       # terraform doesn't support '.' in backend address.
