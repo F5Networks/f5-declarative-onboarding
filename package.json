@@ -68,5 +68,8 @@
   },
   "optionalDependencies": {
     "node-ssh": "^13.2.0"
+  },
+  "overrides": {
+    "mobx-react-lite": "4.1.0"
   }
 }
