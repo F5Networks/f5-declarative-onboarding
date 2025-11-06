@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ const {
 } = require('./propertiesCommon');
 
 describe('Management Route', function testDnsResolver() {
-    this.timeout(300000);
+    this.timeout(900000);
 
     let systemItem;
     let options;

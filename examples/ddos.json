@@ -1,0 +1,65 @@
+{
+    "class": "Device",
+    "schemaVersion": "1.47.0",
+    "async": true,
+    "controls": {
+        "class": "Controls",
+        "trace": true,
+        "logLevel": "debug",
+        "traceResponse": true
+    },
+    "Common": {
+        "class": "Tenant",
+        "DeviceDos": {
+            "class": "DeviceDOS",
+            "networkDosMitigationPercentage": 600,
+            "sipDosMitigationPercentage": 600,
+            "synCookieDsrFlowResetBy": "bigip",
+            "autoThresholdSensitivity": 60,
+            "logPublisher": "local-db-publisher",
+            "thresholdSensitivity": "low",
+            "synCookieWhitelist": "enabled",
+            "dynamicSignatures": {
+                "dns": {
+                    "detection": "enabled",
+                    "mitigation": "medium"
+                },
+                "network": {
+                    "detection": "enabled",
+                    "mitigation": "medium",
+                    "scrubberAdvertisementPeriod": 500,
+                    "scrubberEnable": "yes"
+                }
+            },
+            "dosDeviceVector": [
+                {
+                    "name": "arp-flood",
+                    "allowAdvertisement": "enabled",
+                    "allowUpstreamScrubbing": "disabled",
+                    "attackedDst": "disabled",
+                    "autoBlacklisting": "disabled",
+                    "autoScrubbing": "disabled",
+                    "autoThreshold": "disabled",
+                    "badActor": "disabled",
+                    "blacklistDetectionSeconds": 61,
+                    "blacklistDuration": 14401,
+                    "detectionThresholdPercent": "500",
+                    "detectionThresholdPps": "10000",
+                    "enforce": "enabled",
+                    "floor": "5000",
+                    "multiplierMitigationPercentage": "inherited-default",
+                    "perDstIpDetectionPps": "infinite",
+                    "perDstIpLimitPps": "infinite",
+                    "perSourceIpDetectionPps": "infinite",
+                    "perSourceIpLimitPps": "infinite",
+                    "scrubbingDetectionSeconds": "10",
+                    "scrubbingDuration": "900",
+                    "simulateAutoThreshold": "disabled",
+                    "state": "mitigate",
+                    "suspicious": "false",
+                    "thresholdMode": "manual"
+                }
+            ]
+        }
+    }
+}

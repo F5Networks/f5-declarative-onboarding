@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -378,7 +378,9 @@ const customFunctions = {
     remapNameservers: (configKey, configObject) => {
         if (configObject.forwardZones) {
             configObject.forwardZones.forEach((zone) => {
-                zone.nameservers = zone.nameservers.map((nameserver) => nameserver.name);
+                if (zone.nameservers) {
+                    zone.nameservers = zone.nameservers.map((nameserver) => nameserver.name);
+                }
             });
         }
         return [configKey, configObject];
@@ -528,10 +530,19 @@ function processConfigItem(configItem, tenantConfig, callback) {
     }
     if (NAMELESS_CLASSES.indexOf(configName) > -1 || !(typeof item === 'object' || Array.isArray(item))) {
         const itemKey = declItem.name || `current${configItem.schemaClass}`;
+        if (configItem.schemaClass === 'FailoverUnicast' && Array.isArray(item.addressPorts)) {
+            item.addressPorts = (item.addressPorts || []).filter((mgmt) => mgmt.address !== 'management-ip');
+        }
+        if (configItem.schemaClass === 'DeviceDOS') {
+            const unsupportedVector = ['bad-tcp-flags-malformed', 'tcp-flags-uncommon', 'tcp-ack-ts', 'tcp-ack-flood', 'unk-tcp-opt-type'];
+            item.dosDeviceVector = (item.dosDeviceVector || [])
+                .filter((vector) => (unsupportedVector.indexOf(vector.name) === -1));
+        }
         callback.apply(null, processItem(configItem, declItem, itemKey, item));
     } else {
         Object.keys(item).forEach((itemKey) => {
-            callback.apply(null, processItem(configItem, declItem, itemKey, item[itemKey]));
+            const keyName = (itemKey.match(/^\d/)) ? `${configItem.schemaClass}_${itemKey.replace(/[/]/g, '_')}` : itemKey;
+            callback.apply(null, processItem(configItem, declItem, keyName, item[itemKey]));
         });
     }
 }

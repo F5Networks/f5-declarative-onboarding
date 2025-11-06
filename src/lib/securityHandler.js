@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,11 +61,25 @@ class SecurityHandler {
                 this.logger.fine('Checking SecurityWaf');
                 return handleSecurityWaf.call(this);
             })
+            .then(() => {
+                this.logger.fine('Checking DeviceDOS');
+                return handleSecurityDDos.call(this);
+            })
             .catch((err) => {
                 this.logger.severe(`Error processing security declaration: ${err.message}`);
                 return Promise.reject(err);
             });
     }
+}
+
+function handleSecurityDDos() {
+    if (this.declaration.Common.DeviceDOS) {
+        return this.bigIp.modify(
+            `${PATHS.DeviceDOS}/~Common~dos-device-config`,
+            this.declaration.Common.DeviceDOS
+        );
+    }
+    return Promise.resolve();
 }
 
 function handleSecurityAnalytics() {

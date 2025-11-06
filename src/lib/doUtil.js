@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -717,6 +717,19 @@ module.exports = {
                 }
                 const adminUser = result.value.replace(/"/g, '');
                 return Promise.resolve(adminUser);
+            });
+    },
+
+    /**
+     * Uses TMSH to set the disable root login
+     */
+    setDisableRootLogin(logger, value) {
+        cloudUtil.runTmshCommand(`modify sys db systemauth.disablerootlogin value ${value}`)
+            .then(() => {
+                logger.warning(`Successfully set the DisableRootLogin value ${value} on BIG-IP.`);
+            })
+            .catch((error) => {
+                logger.warning(`Unable to set DisableRootLogin. ${error.stack}`);
             });
     }
 };

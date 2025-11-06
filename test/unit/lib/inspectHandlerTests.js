@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,7 +403,7 @@ describe('inspectHandler', () => {
                             schemaVersion: SCHEMA_VERSION,
                             Common: {
                                 class: 'Tenant',
-                                0: {
+                                RouteDomain_0: {
                                     class: 'RouteDomain'
                                 }
                             }
@@ -1642,6 +1642,64 @@ describe('inspectHandler', () => {
                     link: 'https://localhost/mgmt/tm/security/firewall/management-ip-rules/rules'
                 }
             },
+            '/tm/security/dos/device-config/dos-device-config': {
+                autoThresholdSensitivity: 81,
+                dnsDosMitigationPercentage: 500,
+                dynamicSignatures: {
+                    dns: {
+                        detection: 'enabled',
+                        mitigation: 'none'
+                    },
+                    network: {
+                        detection: 'enabled',
+                        mitigation: 'none',
+                        scrubberAdvertisementPeriod: 300,
+                        scrubberCategory: 'none',
+                        scrubberEnable: 'no'
+                    }
+
+                },
+                networkDosMitigationPercentage: 500,
+                sipDosMitigationPercentage: 500,
+                synCookieDsrFlowResetBy: 'none',
+                synCookieWhitelist: 'disabled',
+                thresholdSensitivity: 'medium',
+                tscookieVlans: ['/Common/testVlan'],
+                customSignatures: ['/Common/test'],
+                dnsSecurity: '/Common/testDns',
+                logPublisher: '/Common/test',
+                dosDeviceVector: [
+                    {
+                        name: 'arp-flood',
+                        allowAdvertisement: 'disabled',
+                        allowUpstreamScrubbing: 'disabled',
+                        attackedDst: 'disabled',
+                        autoBlacklisting: 'disabled',
+                        autoScrubbing: 'disabled',
+                        autoThreshold: 'disabled',
+                        badActor: 'disabled',
+                        blacklistDetectionSeconds: 60,
+                        blacklistDuration: 14400,
+                        ceiling: '200000',
+                        defaultInternalRateLimit: '100000',
+                        detectionThresholdPercent: '500',
+                        detectionThresholdPps: '10000',
+                        enforce: 'enabled',
+                        floor: '5000',
+                        multiplierMitigationPercentage: 'inherited-default',
+                        perDstIpDetectionPps: 'infinite',
+                        perDstIpLimitPps: 'infinite',
+                        perSourceIpDetectionPps: 'infinite',
+                        perSourceIpLimitPps: 'infinite',
+                        scrubbingDetectionSeconds: '10',
+                        scrubbingDuration: '900',
+                        simulateAutoThreshold: 'disabled',
+                        state: 'mitigate',
+                        suspicious: 'false',
+                        thresholdMode: 'manual'
+                    }
+                ]
+            },
             '/tm/net/address-list': [
                 {
                     name: 'currentNetAddressList',
@@ -2800,6 +2858,64 @@ describe('inspectHandler', () => {
                                 {
                                     name: 'max_json_policy_size',
                                     value: 1000
+                                }
+                            ]
+                        },
+                        currentDeviceDOS: {
+                            class: 'DeviceDOS',
+                            autoThresholdSensitivity: 81,
+                            dnsDosMitigationPercentage: 500,
+                            dynamicSignatures: {
+                                dns: {
+                                    detection: 'enabled',
+                                    mitigation: 'none'
+                                },
+                                network: {
+                                    detection: 'enabled',
+                                    mitigation: 'none',
+                                    scrubberAdvertisementPeriod: 300,
+                                    scrubberCategory: 'none',
+                                    scrubberEnable: 'no'
+                                }
+                            },
+                            networkDosMitigationPercentage: 500,
+                            sipDosMitigationPercentage: 500,
+                            synCookieDsrFlowResetBy: 'none',
+                            synCookieWhitelist: 'disabled',
+                            thresholdSensitivity: 'medium',
+                            tscookieVlans: ['/Common/testVlan'],
+                            customSignatures: ['/Common/test'],
+                            dnsSecurity: 'testDns',
+                            logPublisher: 'test',
+                            dosDeviceVector: [
+                                {
+                                    name: 'arp-flood',
+                                    allowAdvertisement: 'disabled',
+                                    allowUpstreamScrubbing: 'disabled',
+                                    attackedDst: 'disabled',
+                                    autoBlacklisting: 'disabled',
+                                    autoScrubbing: 'disabled',
+                                    autoThreshold: 'disabled',
+                                    badActor: 'disabled',
+                                    blacklistDetectionSeconds: 60,
+                                    blacklistDuration: 14400,
+                                    ceiling: '200000',
+                                    defaultInternalRateLimit: '100000',
+                                    detectionThresholdPercent: '500',
+                                    detectionThresholdPps: '10000',
+                                    enforce: 'enabled',
+                                    floor: '5000',
+                                    multiplierMitigationPercentage: 'inherited-default',
+                                    perDstIpDetectionPps: 'infinite',
+                                    perDstIpLimitPps: 'infinite',
+                                    perSourceIpDetectionPps: 'infinite',
+                                    perSourceIpLimitPps: 'infinite',
+                                    scrubbingDetectionSeconds: '10',
+                                    scrubbingDuration: '900',
+                                    simulateAutoThreshold: 'disabled',
+                                    state: 'mitigate',
+                                    suspicious: 'false',
+                                    thresholdMode: 'manual'
                                 }
                             ]
                         }

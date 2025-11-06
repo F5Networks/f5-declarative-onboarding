@@ -1121,6 +1121,27 @@
             { "fullPath": "^/Common/Shared/" }
         ]
     },
+   {
+        "path": "/tm/security/dos/device-config/dos-device-config",
+        "schemaClass": "DeviceDOS",
+        "requiredModules": [{ "module": "afm" }],
+        "properties": [
+            { "id": "dynamicSignatures"},
+            { "id": "networkDosMitigationPercentage"},
+            { "id": "sipDosMitigationPercentage"},
+            { "id": "synCookieDsrFlowResetBy"},
+            { "id": "synCookieWhitelist"},
+            { "id": "tscookieVlans"},
+            { "id": "autoThresholdSensitivity"},
+            { "id": "customSignatures"},
+            { "id": "logPublisher"},
+            { "id": "dnsDosMitigationPercentage"},
+            { "id": "thresholdSensitivity"},
+            { "id": "dnsSecurity"},
+            { "id": "dosDeviceVector"}
+        ],
+         "nameless": true
+    },
     {
         "path": "/tm/net/address-list",
         "schemaClass": "NetAddressList",

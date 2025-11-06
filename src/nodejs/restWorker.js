@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -946,6 +946,13 @@ function rootAccountSetup(wrapper, updatedPassword, logger) {
     const rootUser = getUserFromDeclaration('root', wrapper.declaration);
     if (!rootUser) {
         return Promise.resolve();
+    }
+
+    if (typeof rootUser.disableRootLogin !== 'undefined') {
+        doUtil.setDisableRootLogin(logger, rootUser.disableRootLogin);
+        if (rootUser.disableRootLogin) {
+            return Promise.resolve();
+        }
     }
 
     return new Promise((resolve, reject) => {

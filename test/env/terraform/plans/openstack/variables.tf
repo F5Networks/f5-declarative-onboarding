@@ -1,7 +1,7 @@
 # BIGIP image
 variable "bigip_image" {
   description = "BIGIP image to deploy"
-  default = "BIGIP-14.1.4-0.0.11"
+  default = "BIGIP-17.5.1-0.0.7"
 }
 
 # Run parameters
@@ -29,7 +29,7 @@ variable "image_flavor" {
 variable "networks" {
   description = "Networks for BIGIP"
   default = {
-      1: "AdminNetwork2",
+      1: "AdminNetwork",
       2: "vlan1010",
       3: "vlan1011"
     }

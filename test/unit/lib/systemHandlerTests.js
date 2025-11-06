@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -261,7 +261,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
                     assert.strictEqual(filesCopied[6], '/config/big3d/client.crt');
                     assert.strictEqual(filesCopied[7], '/config/gtm/server.crt');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                     assert.deepEqual(
                         status.rollbackInfo.systemHandler.deviceCertificate.files,
                         [
@@ -356,7 +356,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[9], '/config/big3d/client.crt.DO.orig');
                     assert.strictEqual(filesCopied[10], '/config/gtm/server.crt');
                     assert.strictEqual(filesCopied[11], '/config/gtm/server.crt.DO.orig');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
 
@@ -403,7 +403,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key.DO.bak');
                     assert.strictEqual(filesCopied[6], '/config/big3d/client.crt.DO.bak');
                     assert.strictEqual(filesCopied[7], '/config/gtm/server.crt.DO.bak');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
 
@@ -475,7 +475,7 @@ describe('systemHandler', () => {
                     assert.strictEqual(filesCopied[3], '/config/gtm/server.crt');
                     assert.strictEqual(filesCopied[4], '/config/httpd/conf/ssl.crt/server.crt');
                     assert.strictEqual(filesCopied[5], '/config/httpd/conf/ssl.key/server.key');
-                    assert.strictEqual(status.rebootRequired, true);
+                    assert.strictEqual(status.rebootRequired, false);
                 });
         });
     });
@@ -1054,6 +1054,79 @@ describe('systemHandler', () => {
             });
     });
 
+    it('should disable root login', () => {
+        // Stubs out the remote call to confirm the key is not added to the user
+        doUtilExecuteBashCommandStub.restore();
+        sinon.stub(doUtilMock, 'executeBashCommandIControl').resolves(superuserKey);
+        const tmshCmds = [];
+        sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+            tmshCmds.push(tmshCmd);
+            return Promise.resolve('');
+        });
+
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        oldPassword: 'foo',
+                        newPassword: 'bar',
+                        disableRootLogin: false,
+                        keys: [],
+                        forceInitialPasswordChange: true
+                    }
+                }
+            }
+        };
+
+        let userSent;
+        let newPasswordSent;
+        let oldPasswordSent;
+        bigIpMock.onboard = {
+            password(user, newPassword, oldPassword) {
+                userSent = user;
+                newPasswordSent = newPassword;
+                oldPasswordSent = oldPassword;
+                return Promise.resolve();
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(userSent, 'root');
+                assert.strictEqual(newPasswordSent, 'bar');
+                assert.strictEqual(oldPasswordSent, 'foo');
+                assert.strictEqual(declaration.Common.User.root.keys.join('\n'), superuserKey);
+                assert.strictEqual(tmshCmds.length, 1);
+                assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value false');
+            });
+    });
+
+    it('should enable root login', () => {
+        const tmshCmds = [];
+        sinon.stub(cloudUtil, 'runTmshCommand').callsFake((tmshCmd) => {
+            tmshCmds.push(tmshCmd);
+            return Promise.resolve('');
+        });
+        const declaration = {
+            Common: {
+                User: {
+                    root: {
+                        userType: 'root',
+                        disableRootLogin: true
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process().then(() => {
+            assert.strictEqual(tmshCmds.length, 1);
+            assert.strictEqual(tmshCmds[0], 'modify sys db systemauth.disablerootlogin value true');
+        });
+    });
+
     it('should handle root users without keys', () => {
         // Stubs out the remote call to confirm the key is not added to the user
         doUtilExecuteBashCommandStub.restore();
@@ -1176,7 +1249,7 @@ describe('systemHandler', () => {
                 assert.strictEqual(userSent, 'root');
                 assert.strictEqual(newPasswordSent, 'bar');
                 assert.strictEqual(oldPasswordSent, 'foo');
-                assert.strictEqual(bashCmds.length, 16); // Should only be the 16 default commands
+                assert.strictEqual(bashCmds.length, 17); // Should only be the 17 default commands
             });
     });
 
@@ -1272,7 +1345,8 @@ describe('systemHandler', () => {
                     ]
                 );
                 assert.deepEqual(bodiesSent[2].shell, 'tmsh');
-                assert.strictEqual(bashCmds[16],
+                assert.strictEqual(bashCmds[16], 'systemctl restart httpd && systemctl restart httpd');
+                assert.strictEqual(bashCmds[17],
                     [
                         ` mkdir -p ${sshPaths[0]}; `,
                         `echo '${testKey}' > `,
@@ -1281,7 +1355,7 @@ describe('systemHandler', () => {
                         `chmod -R 700 ${sshPaths[0]}; `,
                         `chmod 600 ${sshPaths[0]}/authorized_keys`
                     ].join(''));
-                assert.strictEqual(bashCmds[17],
+                assert.strictEqual(bashCmds[18],
                     [
                         ` mkdir -p ${sshPaths[1]}; `,
                         'echo \'\' > ',
@@ -2793,6 +2867,44 @@ describe('systemHandler', () => {
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-privacy');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, '0x80001f8880c6b6067fdacfb558');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].host, '10.0.10.100');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, undefined);
+            });
+    });
+
+    it('should handle SnmpTrapDestination with destination hostname', () => {
+        const declaration = {
+            Common: {
+                SnmpTrapDestination: {
+                    myDestination: {
+                        name: 'myDestination',
+                        version: '3',
+                        host: 'myhost.example.com',
+                        port: 80,
+                        network: 'other',
+                        authProtocol: 'sha',
+                        authPassword: 'P@ssW0rd1',
+                        privacyProtocol: 'aes',
+                        privacyPassword: 'P@ssW0rd2',
+                        engineId: '0x80001f8880c6b6067fdacfb558',
+                        securityName: 'someSnmpUser'
+                    }
+                }
+            }
+        };
+
+        const systemHandler = new SystemHandler(declaration, bigIpMock, null, state);
+        return systemHandler.process()
+            .then(() => {
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].name, 'myDestination');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authPassword, 'P@ssW0rd1');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].authProtocol, 'sha');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyPassword, 'P@ssW0rd2');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].privacyProtocol, 'aes');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityLevel, 'auth-privacy');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].engineId, '0x80001f8880c6b6067fdacfb558');
+                assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].host, 'myhost.example.com');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].securityName, 'someSnmpUser');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].network, 'other');
                 assert.strictEqual(dataSent[PATHS.SnmpTrapDestination][0].community, undefined);

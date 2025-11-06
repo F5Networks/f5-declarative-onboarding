@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ describe('GSLB Globals', function testGslbGlobalsSuite() {
             {
                 name: 'synchronizeZoneFiles',
                 inputValue: [undefined, true, false, undefined],
-                expectedValue: [false, true, false, false]
+                expectedValue: ['no', 'yes', 'no', 'no']
             }
         ];
 

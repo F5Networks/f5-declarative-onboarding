@@ -1,9 +1,25 @@
 # Changelog
 Changes to this project are documented in this file. More detail and links can be found in the Declarative Onboarding [Document Revision History](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/revision-history.html).
 
+## 1.47.0
+### Added
+- AUTOTOOL-4698: Add support for device DDOS [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/ddos.json)
+- AUTOTOOL-4494: ([GitHub 309](https://github.com/F5Networks/f5-declarative-onboarding/issues/309)) : Unable to set SNMP trap destination to FQDN
+
+### Fixed
+- AUTOTOOL-4399: ([GitHub 378](https://github.com/F5Networks/f5-declarative-onboarding/issues/378)): Add key/value to uncheck 'Disable login' on the root account [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/rootUserWithDisableRootLogin.json)
+- AUTOTOOL-3579: ([GitHub 332](https://github.com/F5Networks/f5-declarative-onboarding/issues/332)): DO reboots device and resets hostname when simple declaration with DeviceCertificate is used
+- AUTOTOOL-4715: DO inspect request failing with "Cannot read property 'map' of undefined"
+- AUTOTOOL-4735: Unable to verify declaration from existing state error when using inspect command in DO
+
+### Changed
+
+### Removed
+
 ## 1.46.0
 ### Added
 - AUTOTOOL-4400: Add Support for GSLB synchronize-zone-files [Example](https://github.com/F5Networks/f5-declarative-onboarding/blob/main/examples/gslbGlobals.json)
+- Updated packages to the latest available versions
 
 ### Fixed
 

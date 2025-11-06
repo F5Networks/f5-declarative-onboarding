@@ -61,6 +61,14 @@
             "port": 80,
             "network": "other"
         },
+        "myV2SnmpDestinationHostname": {
+            "class": "SnmpTrapDestination",
+            "version": "2c",
+            "community": "my_snmp_community",
+            "destination": "myhost.example.com",
+            "port": 80,
+            "network": "other"
+        },
         "myV3SnmpDestination": {
             "class": "SnmpTrapDestination",
             "version": "3",

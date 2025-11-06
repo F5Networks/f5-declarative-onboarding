@@ -30,6 +30,7 @@ variables:
     TF_HTTP_RETRY_MAX: 4
     TF_HTTP_RETRY_WAIT_MIN: 3
     DOCS_BUILD_DIR: "docs/_build/html"
+    SECRETS_ANALYZER_VERSION: '6.14.0'
 
 # This inherits all the jobs defined in the parent template
 # Override variables in this project as needed
@@ -178,6 +179,9 @@ build_rpm:
         - pipelines
     script:
         # setup node environment
+        - sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list
+        - sed -i 's|http://security.debian.org|http://archive.debian.org/debian-security|g' /etc/apt/sources.list
+        - apt-get update -o Acquire::Check-Valid-Until=false
         - apt-get update && apt-get install -y rpm --no-install-recommends
         - scripts/build/buildRpm.sh
     artifacts:
@@ -244,7 +248,7 @@ create_docs:
 .deploy_common: &deploy_common
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-      - do-test-docker-executor
+      - cm-official-docker-executor
     stage: deploy
     timeout: 2 hours
     script:
@@ -284,6 +288,8 @@ deploy_for_this_project:
     rules:
       - if: '$RUN_INTEGRATION_TEST =~ /true/i'
     variables:
+      TF_LOG: "DEBUG"  # Add this for detailed Terraform logs
+      TF_LOG_PATH: "/tmp/terraform.log"  # Optional: save logs to file
       TF_ROOT: '$TF_DIRECTORY/plans/openstack'
       TF_VAR_bigip_image: "$BIGIP_IMAGE"
       TF_VAR_nic_count: "$NIC_COUNT"
@@ -308,6 +314,8 @@ deploy_for_other_project:
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     variables:
       TF_ROOT: "$TF_DIRECTORY/plans/openstack"
+      TF_LOG: "DEBUG"  # Add this for detailed Terraform logs
+      TF_LOG_PATH: "/tmp/terraform.log"  # Optional: save logs to file
       TF_VAR_bigip_image: "$BIGIP_IMAGE"
       TF_VAR_nic_count: "$NIC_COUNT"
     before_script:
@@ -331,14 +339,16 @@ deploy_for_other_project:
 integration-test:
     image: $DOCKER_URL/node:16
     tags:
-        - do-test-docker-executor
+        - cm-official-docker-executor
     rules:
       - if: '$RUN_INTEGRATION_TEST =~ /true/i'
       - if: '$TRIGGER_INTEGRATION_TEST =~ /true/i'
     stage: integration-test
     timeout: 3 hours
     before_script:
-        - apt-get update
+        - sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list
+        - sed -i 's|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g' /etc/apt/sources.list
+        - apt-get update -o Acquire::Check-Valid-Until=false
         - apt-get install -y jq
         - export ESR_TEST_TYPE=integration
         - export ESR_PRODUCT_VERSION=$(node -e "console.log(require('./package.json').version)" | cut -d '-' -f1)
@@ -370,7 +380,7 @@ integration-test:
 .teardown_common: &teardown_common
     image: $INTEGRATION_DEPLOY_IMAGE
     tags:
-      - do-test-docker-executor
+      - cm-official-docker-executor
     stage: teardown
     before_script:
       # terraform doesn't support '.' in backend address.

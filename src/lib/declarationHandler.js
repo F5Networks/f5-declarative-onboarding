@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,7 @@ class DeclarationHandler {
             .then(() => removeUnwantedProperties(parsedNewDeclaration, parsedOldDeclaration))
             .then(() => {
                 applyDefaults.call(this, parsedNewDeclaration);
+                applyDDOSDefaults.call(this, parsedNewDeclaration);
                 applyDnsResolverFixes.call(this, parsedNewDeclaration);
                 applyHostnameFixes.call(this, parsedNewDeclaration);
                 applyManagementIpFixes.call(this, parsedNewDeclaration, parsedOldDeclaration);
@@ -196,6 +197,7 @@ function applyDefaults(declaration) {
     const commonDeclaration = declaration.Common;
 
     // deep copy original item to avoid modifications of originalConfig.Common in handlers
+
     const commonOriginal = JSON.parse(JSON.stringify(this.state.originalConfig.Common || {}));
 
     CLASSES_OF_TRUTH.forEach((key) => {
@@ -214,6 +216,88 @@ function applyDefaults(declaration) {
             }
         }
     });
+}
+
+function applyDDOSDefaults(declaration) {
+    const integerKeys = ['ceiling', 'defaultInternalRateLimit', 'detectionThresholdPercent', 'detectionThresholdPps', 'floor', 'perDstIpDetectionPps',
+        'perDstIpLimitPps', 'perSourceIpDetectionPps', 'perSourceIpLimitPps', 'scrubbingDetectionSeconds', 'scrubbingDuration'
+    ];
+    function convertSpecificIntegersToStrings(obj, keysToConvert) {
+        const result = {};
+
+        // eslint-disable-next-line guard-for-in, no-restricted-syntax
+        for (const key in obj) {
+            const value = obj[key];
+
+            if (keysToConvert.includes(key) && typeof value === 'number' && Number.isInteger(value)) {
+                result[key] = value.toString();
+            } else {
+                result[key] = value;
+            }
+        }
+
+        return result;
+    }
+    if (declaration.Common.DeviceDOS && !declaration.Common.DeviceDOS.logPublisher) {
+        declaration.Common.DeviceDOS.logPublisher = 'none';
+    }
+
+    if (declaration.Common.DeviceDOS && !declaration.Common.DeviceDOS.dynamicSignatures) {
+        declaration.Common.DeviceDOS.dynamicSignatures = this.state.originalConfig.Common.DeviceDOS.dynamicSignatures;
+    } else if (declaration.Common.DeviceDOS) {
+        if (declaration.Common.DeviceDOS.dynamicSignatures && !declaration.Common.DeviceDOS.dynamicSignatures.dns) {
+            // eslint-disable-next-line max-len
+            declaration.Common.DeviceDOS.dynamicSignatures.dns = this.state.originalConfig.Common.DeviceDOS.dynamicSignatures.dns;
+        }
+        if (declaration.Common.DeviceDOS.dynamicSignatures && !declaration.Common.DeviceDOS.dynamicSignatures.network) {
+            // eslint-disable-next-line max-len
+            declaration.Common.DeviceDOS.dynamicSignatures.network = this.state.originalConfig.Common.DeviceDOS.dynamicSignatures.network;
+        }
+
+        if (declaration.Common.DeviceDOS.dynamicSignatures.network) {
+            if (declaration.Common.DeviceDOS.dynamicSignatures.network.scrubberEnable === 'no') {
+                declaration.Common.DeviceDOS.dynamicSignatures.network.scrubberCategory = 'none';
+            } else if (!declaration.Common.DeviceDOS.dynamicSignatures.network.scrubberCategory) {
+                declaration.Common.DeviceDOS.dynamicSignatures.network.scrubberCategory = 'attacked_ips';
+            }
+        }
+    }
+
+    let dosDeclarationConfig = (declaration.Common.DeviceDOS && declaration.Common.DeviceDOS.dosDeviceVector)
+        ? declaration.Common.DeviceDOS.dosDeviceVector : [];
+
+    if (dosDeclarationConfig.length > 0) {
+        // eslint-disable-next-line max-len
+        dosDeclarationConfig = dosDeclarationConfig.map((vector) => convertSpecificIntegersToStrings(vector, integerKeys));
+    }
+    const originalDDOSDefaults = JSON.parse(JSON.stringify(
+        this.state.originalConfig.Common.DeviceDOS && this.state.originalConfig.Common.DeviceDOS.dosDeviceVector
+            ? this.state.originalConfig.Common.DeviceDOS.dosDeviceVector : []
+    ));
+
+    const updatedVectors = originalDDOSDefaults.map((inputVec) => {
+        const updatedVec = Object.assign({}, inputVec); // clone inputVec
+        const originalDecVec = dosDeclarationConfig.find((vector) => vector.name === updatedVec.name);
+
+        if (originalDecVec) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const key in inputVec) {
+                if (
+                    // eslint-disable-next-line no-prototype-builtins
+                    originalDecVec.hasOwnProperty(key)
+                    && inputVec[key] !== originalDecVec[key]
+                ) {
+                    updatedVec[key] = originalDecVec[key]; // override only differing values
+                }
+            }
+        }
+
+        return updatedVec;
+    });
+
+    if (declaration.Common.DeviceDOS) {
+        declaration.Common.DeviceDOS.dosDeviceVector = updatedVectors;
+    }
 }
 
 /**

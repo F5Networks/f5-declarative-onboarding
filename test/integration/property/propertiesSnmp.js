@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,8 +289,8 @@ describe('Snmp', function testSnmp() {
                 },
                 {
                     name: 'destination',
-                    inputValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100'],
-                    expectedValue: ['10.0.10.100', 'fdf5:4153:3300::a', '10.0.10.100']
+                    inputValue: ['10.0.10.100', 'fdf5:4153:3300::a', 'myhost.example.com'],
+                    expectedValue: ['10.0.10.100', 'fdf5:4153:3300::a', 'myhost.example.com']
                 },
                 {
                     name: 'port',

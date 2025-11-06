@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 F5, Inc.
+ * Copyright 2025 F5, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,44 @@ describe('userValidator', () => {
                         userWithMaxLengthName_123456789: {
                             class: 'User',
                             userType: 'regular'
+                        }
+                    }
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should validate valid root user with not disableRootLogin', () => {
+            const wrapper = {
+                targetHost: '192.0.2.10',
+                declaration: {
+                    Common: {
+                        root: {
+                            class: 'User',
+                            userType: 'root',
+                            disableRootLogin: false
+                        }
+                    }
+                }
+            };
+            return validator.validate(wrapper)
+                .then((validation) => {
+                    assert.ok(validation.isValid);
+                });
+        });
+
+        it('should validate valid root user with disableRootLogin', () => {
+            const wrapper = {
+                targetHost: '192.0.2.10',
+                declaration: {
+                    Common: {
+                        root: {
+                            class: 'User',
+                            userType: 'root',
+                            disableRootLogin: true
                         }
                     }
                 }
