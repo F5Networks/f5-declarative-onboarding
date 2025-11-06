@@ -631,7 +631,7 @@ describe('Declarative Onboarding Integration Test Suite', function performIntegr
             () => testStatusCode({ statusCodes: 'experimental' }, constants.HTTP_SUCCESS));
     });
 
-    describe.skip('Test Licensing and properties requiring a license', function testLicensing() {
+    describe('Test Licensing and properties requiring a license', function testLicensing() {
         this.timeout(1000 * 60 * 30); // 30 minutes
 
         const bigIqAuth = {
