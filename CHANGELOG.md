@@ -13,6 +13,7 @@ Changes to this project are documented in this file. More detail and links can b
 - AUTOTOOL-4735: Unable to verify declaration from existing state error when using inspect command in DO
 
 ### Changed
+- AUTOTOOL-4924: Update documentation to reflect dropping Github support for DO and directing users to F5 support and forums for help
 
 ### Removed
 
