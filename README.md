@@ -1,12 +1,13 @@
 # F5 BIG-IP Declarative Onboarding
 
 [![Releases](https://img.shields.io/github/release/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/releases)
-[![Issues](https://img.shields.io/github/issues/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/issues)
 
 ## Introduction
 F5 BIG-IP Declarative Onboarding uses a declarative model to initially configure a F5 BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
 
-**IMPORTANT** Beginning with F5 BIG-IP DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in this repository.  These files can be found on the [Release page](https://github.com/F5Networks/f5-declarative-onboarding/releases), as **Assets**.
+**IMPORTANT** Beginning with F5 BIG-IP DO 1.8.0, the DO RPM, Postman collection, and checksum files will no longer be located in the **/dist** directory in this repository. Historical files remain available on the archived [Release page](https://github.com/F5Networks/f5-declarative-onboarding/releases), under **Assets**.
+
+RPMs are also available for manual download from [MyF5 Downloads](https://my.f5.com/manage/s/downloads).
 
 ## Documentation
 For documentation on F5 BIG-IP Declarative Onboarding, including download, installation, and usage instructions, see the Declarative Onboarding [User Guide](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest).
@@ -15,17 +16,17 @@ For documentation on F5 BIG-IP Declarative Onboarding, including download, insta
 The Declarative Onboarding documentation contains example declarations you can modify to suit your needs.  See the [Examples](https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/examples.html) page.
 
 ## Filing Issues and Getting Help
-If you come across a bug or other issue when using BIG-IP Declarative Onboarding, use [GitHub Issues](https://github.com/F5Networks/f5-declarative-onboarding/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.
+If you come across a bug or other issue when using BIG-IP Declarative Onboarding, use [F5 Technical Support](https://www.f5.com/support) to submit it to our team.
 
-**Important**: Github Issues are consistently monitored by F5 staff, but should be considered as best effort only and you should not expect to receive the same level of response as provided by F5 Support. Please open a case as described below with F5 if this is a critical issue.
+**Important**: As of February 2026, GitHub issues are no longer being monitored by F5 support staff.
 
-Because BIG-IP Declarative Onboarding versions 1.1.0 and later have been created and fully tested by F5 Networks, they are is fully supported by F5. This means you can get assistance if necessary from [F5 Technical Support](https://support.f5.com/csp/article/K25327565).
+Because BIG-IP Declarative Onboarding versions 1.1.0 and later have been created and fully tested by F5 Networks, they are fully supported by F5.
 
 Be sure to see the [Support page](SUPPORT.md) in this repo for more details and supported versions of BIG-IP Declarative Onboarding.
 
 ## Copyright
 
-Copyright 2014-2025 F5, Inc.
+Copyright 2014-2026 F5, Inc.
 
 ### F5 Networks Contributor License Agreement
 

@@ -4,6 +4,7 @@ This is the top-level documentation which provides notes and information about c
 
 - [Overview](#overview)
 - [Contributing](#contributing)
+- [Development](#development)
 
 ---
 ## Overview
@@ -328,6 +329,13 @@ Ok, overview done!  Now let's dive into the major areas to be aware of as a deve
 - [Release methodology](#release-methodology)
 
 ---
+## Development
+
+This section provides some notes and information about the development of this project, including notes on setting up the testing environment.
+
+See /test/README.md for more details on testing, the harness file, and setting up the testing environment. This includes instructions for setting up the BIG-IP and BIG-IQ devices needed for testing, as well as instructions for running the tests once the environment is setup.
+
+---
 ### Core modules
 
 All core modules are included inside `../src/`
@@ -384,3 +392,8 @@ We check for the following:
 - Email addresses
 - IP addresses
 - Generic credential keywords
+
+---
+### Github issue changes
+
+Github Issues are no longer monitored by F5 staff. Please open a case with [F5 Technical Support](https://www.f5.com/support) if this is a critical issue.
