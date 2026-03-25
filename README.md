@@ -2,6 +2,10 @@
 
 [![Releases](https://img.shields.io/github/release/F5Networks/f5-declarative-onboarding.svg)](https://github.com/F5Networks/f5-declarative-onboarding/releases)
 
+**AS OF FEBRUARY 2026, THIS GITHUB REPOSITORY WILL NO LONGER BE MONITORED OR UPDATED.**
+
+This repository will remain available, at least temporarily. You can find the latest RPMs and other files on [MyF5 Downloads](https://my.f5.com/manage/s/downloads). Refer to 'Filing Issues and Getting Help' for additional details.
+
 ## Introduction
 F5 BIG-IP Declarative Onboarding uses a declarative model to initially configure a F5 BIG-IP device with all of the required settings to get up and running.  This includes system settings such as licensing and provisioning, network settings such as VLANs and Self IPs, and clustering settings if you are using more than one BIG-IP system.
 
